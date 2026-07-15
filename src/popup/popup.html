@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LinkedIn Insight Tag Checker</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">in</span>
+        <div class="brand__text">
+          <h1>Insight Tag Checker</h1>
+          <p id="host" class="brand__host">—</p>
+        </div>
+      </div>
+    </header>
+
+    <main id="content">
+      <!-- Base tag status hero -->
+      <section id="hero" class="hero hero--unknown">
+        <div class="hero__dot" aria-hidden="true"></div>
+        <div class="hero__body">
+          <h2 id="hero-title">Checking…</h2>
+          <p id="hero-desc" class="hero__desc">Looking for the LinkedIn Insight Tag on this page.</p>
+        </div>
+      </section>
+
+      <!-- Partner IDs -->
+      <section class="block">
+        <h3 class="block__title">Partner ID<span id="pid-count" class="muted"></span></h3>
+        <div id="pids" class="chips">
+          <span class="muted">Not detected yet.</span>
+        </div>
+      </section>
+
+      <!-- Conversions -->
+      <section class="block">
+        <h3 class="block__title">
+          Event conversions<span id="conv-count" class="muted"></span>
+        </h3>
+        <ul id="conversions" class="list">
+          <li class="empty muted">No event-specific conversions captured yet.</li>
+        </ul>
+        <p class="hint">
+          Trigger an action (click a button, submit a form) with this popup open to
+          watch its conversion fire.
+        </p>
+      </section>
+
+      <!-- Warnings -->
+      <section id="warnings-block" class="block" hidden>
+        <h3 class="block__title">Notices</h3>
+        <ul id="warnings" class="list list--warnings"></ul>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span class="muted">Reads network activity &amp; page data locally. Nothing leaves your browser.</span>
+    </footer>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>
