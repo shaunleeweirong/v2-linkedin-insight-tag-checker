@@ -8,21 +8,17 @@ file goes in which slot. Copy-paste ready.
 ## 1. Store listing tab
 
 ### Item name / title
-**Insight Tag Checker for LinkedIn**
+**Insight Tag Checker for LinkedIn** — already set in `manifest.json` → `name`.
 
-> Trademark note: leading with a plain "LinkedIn …" name can draw extra review.
-> The `… for LinkedIn` convention is the accepted pattern for compatible tools
-> (e.g. the existing "Insight Tag Checker for LinkedIn"). The manifest currently
-> says `LinkedIn Insight Tag Checker` — consider aligning `manifest.json` → `name`
-> to match whatever title you submit. The marketing assets already use the
-> brand-safe product name **"Insight Tag Checker"**.
+> The `… for LinkedIn` convention is the accepted pattern for compatible tools and
+> avoids the extra review that leading with a plain "LinkedIn …" name can draw. The
+> marketing assets use the brand-safe product name **"Insight Tag Checker"**.
 
 ### Summary (max 132 characters)
 ```
 Check if your LinkedIn Insight Tag & conversion events are firing — live, on any site, 100% local.
 ```
-(98 characters. This maps to `manifest.json` → `description`, which is currently
-different — update the manifest to match if you want them identical.)
+(98 characters — already set in `manifest.json` → `description`, so they match.)
 
 ### Category
 **Developer Tools**
@@ -102,9 +98,12 @@ Copy from `store/permissions-justification.md`. Summary:
 - The three certifications (not selling data, not using for unrelated purposes, not transferring for creditworthiness): **check all three** — they are all true.
 
 ### Privacy policy URL (required)
-Host `store/privacy-policy.md` at a public URL and paste it here. Easiest option:
-enable **GitHub Pages** on the repo (or drop the file in a `/docs` folder) and use
-that link, e.g. `https://<user>.github.io/<repo>/privacy-policy`.
+A ready-to-host page already exists at **`docs/privacy-policy.html`**. Push the repo
+to GitHub, enable **GitHub Pages** (Settings → Pages → Source: `main` / `/docs`), and
+paste this URL:
+```
+https://<your-github-username>.github.io/<repo-name>/privacy-policy.html
+```
 
 ---
 

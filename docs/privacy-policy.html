@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — Insight Tag Checker for LinkedIn</title>
+    <style>
+      :root { --ink: #1b1f24; --muted: #5b6570; --blue: #0a66c2; --line: #e6e9ec; }
+      * { box-sizing: border-box; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: var(--ink); line-height: 1.6; max-width: 720px; margin: 0 auto; padding: 48px 24px 80px;
+      }
+      .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+      .mark { width: 40px; height: 40px; border-radius: 10px; background: var(--blue); color: #fff;
+        display: grid; place-items: center; font-weight: 800; font-size: 18px; letter-spacing: -1px; }
+      h1 { font-size: 26px; margin: 20px 0 4px; }
+      h2 { font-size: 18px; margin: 32px 0 8px; }
+      .updated { color: var(--muted); font-size: 14px; margin-top: 0; }
+      .lead { font-size: 17px; background: #f4f6f8; border: 1px solid var(--line);
+        border-radius: 10px; padding: 14px 16px; }
+      a { color: var(--blue); }
+      code { background: #f4f6f8; padding: 1px 5px; border-radius: 4px; font-size: 90%; }
+      footer { margin-top: 48px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="brand">
+      <div class="mark">in</div>
+      <strong>Insight Tag Checker for LinkedIn</strong>
+    </div>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 16 July 2026</p>
+
+    <p class="lead"><strong>This extension collects nothing, sends nothing, and stores nothing off your device.</strong></p>
+
+    <h2>What the extension does</h2>
+    <p>
+      Insight Tag Checker for LinkedIn is a developer/marketer diagnostic tool. It inspects the page you are
+      viewing to determine whether the LinkedIn Insight Tag and its event-specific conversion requests are
+      installed and firing. To do this it:
+    </p>
+    <ul>
+      <li>
+        Observes network requests <strong>to LinkedIn's tag endpoints only</strong>
+        (<code>px.ads.linkedin.com</code> and <code>snap.licdn.com</code>) using the browser's
+        <code>webRequest</code> API, reading the request URL and whether it completed or errored.
+      </li>
+      <li>
+        Reads LinkedIn Insight Tag values already present in the page
+        (<code>_linkedin_partner_id</code>, <code>_linkedin_data_partner_ids</code>) and observes calls the
+        page makes to LinkedIn's own <code>lintrk()</code> function.
+      </li>
+    </ul>
+
+    <h2>What data is collected</h2>
+    <p><strong>None.</strong> The extension does not collect, log, sell, or transmit any personal information,
+      browsing history, or website content.</p>
+
+    <h2>Where data goes</h2>
+    <p>
+      All analysis happens locally in your browser. Results are held only in
+      <code>chrome.storage.session</code> (in-memory session storage) keyed to the current tab, and are
+      <strong>discarded when the tab is closed or the browser is restarted</strong>. No data is ever sent to us
+      or to any third party. The extension has no backend server and makes no network requests of its own.
+    </p>
+
+    <h2>Permissions</h2>
+    <p>
+      Every permission exists solely to read local signals for the diagnostic described above:
+      <code>webRequest</code> and host access to LinkedIn's tag endpoints to observe whether the tag fires;
+      <code>storage</code> for transient per-tab results; <code>activeTab</code> for the popup; and content
+      scripts so the tool can audit any website you choose. Nothing is transmitted off-device.
+    </p>
+
+    <h2>Contact</h2>
+    <p>Questions: <a href="mailto:shaunleeweirong@gmail.com">shaunleeweirong@gmail.com</a></p>
+
+    <footer>Not affiliated with, or endorsed by, LinkedIn.</footer>
+  </body>
+</html>

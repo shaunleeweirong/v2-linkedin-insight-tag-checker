@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LinkedIn Insight Tag Checker",
+  "name": "Insight Tag Checker for LinkedIn",
   "version": "0.1.0",
-  "description": "Check whether the LinkedIn Insight Tag and event-specific conversions are installed and firing on any website.",
+  "description": "Check if your LinkedIn Insight Tag & conversion events are firing — live, on any site, 100% local.",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",

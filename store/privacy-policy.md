@@ -1,6 +1,8 @@
-# Privacy Policy — LinkedIn Insight Tag Checker
+# Privacy Policy — Insight Tag Checker for LinkedIn
 
-_Last updated: 2026-07-14_
+_Last updated: 2026-07-16_
+
+_A hosted HTML version for the Chrome Web Store listing lives at `docs/privacy-policy.html`._
 
 **Summary: this extension collects nothing, sends nothing, and stores nothing off your device.**
 
