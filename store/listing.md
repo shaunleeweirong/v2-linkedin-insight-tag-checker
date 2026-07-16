@@ -74,6 +74,13 @@ All files live in `store/assets/`. All are the exact required dimensions.
 
 To regenerate or tweak them, see `store/assets/README.md`.
 
+### Additional fields (same tab, all optional)
+- **YouTube video:** leave blank.
+- **Official URL:** leave blank (verified publishers only).
+- **Homepage URL:** your GitHub repo URL (once pushed).
+- **Support URL:** your GitHub repo `/issues` URL, or `mailto:shaunleeweirong@gmail.com`.
+- **Mature content:** No.
+
 ---
 
 ## 3. Privacy practices tab
@@ -108,13 +115,23 @@ https://<your-github-username>.github.io/<repo-name>/privacy-policy.html
 ---
 
 ## 4. Distribution
-- **Visibility:** Public (or Unlisted while you test).
-- **Regions:** All.
-- No paid features / in-app purchases.
+- **Payments:** Free.
+- **Visibility:** Public (or **Unlisted** while you test — only people with the link see it).
+- **Distribution regions:** All regions.
+- **In-app purchases / paid features:** None.
 
-## 5. Pre-submit checklist
-- [ ] `npm run build` → upload the zipped **`dist/`** folder (not the repo root).
-- [ ] `manifest.json` name/description aligned with the title/summary above (optional but tidy).
-- [ ] Privacy policy hosted and URL added.
+## 5. Account-level, one-time (required to publish)
+- **Verified contact email:** verify `shaunleeweirong@gmail.com` (Account tab → add + confirm).
+- **Trader status (EU DSA):** the store forces a choice:
+  - **Non-trader** — an individual publishing a free tool, not in a business/professional capacity. No public contact address required.
+  - **Trader** — publishing for/through a business or agency, or planning to monetise. Requires a public contact address + phone.
+  - For a free personal project, **Non-trader** is the usual pick. Choose **Trader** if this is for your company/agency.
+
+## 6. Pre-submit checklist
+- [ ] Upload `insight-tag-checker-0.1.0.zip` (built `dist/`, manifest at the zip root).
+- [ ] Description, summary, category (Developer Tools), language filled in.
 - [ ] All 5 screenshots + small promo tile uploaded.
-- [ ] Single purpose + permission justifications filled in.
+- [ ] Single purpose + every permission justification filled in.
+- [ ] Data-usage: no categories checked, all 3 certifications checked.
+- [ ] Privacy policy hosted and URL added.
+- [ ] Contact email verified + trader status chosen.
