@@ -9,6 +9,12 @@ export const LI_COLLECT_HOST = 'px.ads.linkedin.com';
 // URL match patterns handed to chrome.webRequest listeners. Scoped to exactly
 // what parseInsightRequest() understands: the /collect beacon (base page-load and
 // conversions) and the Insight Tag library file.
+//
+// NOTE: narrowing the listener filter here is fine, but the manifest's
+// host_permissions MUST stay "<all_urls>". Chrome only dispatches webRequest
+// events when the extension has host access to BOTH the request URL and the
+// page that initiated it — with LinkedIn-only host permissions, beacon events
+// are silently dropped on every site the user hasn't granted via an icon click.
 export const REQUEST_FILTERS = [
   '*://px.ads.linkedin.com/collect*',
   '*://snap.licdn.com/li.lms-analytics/*'
