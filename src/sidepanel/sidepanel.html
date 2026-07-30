@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LinkedIn Insight Tag Checker</title>
-    <link rel="stylesheet" href="./popup.css" />
+    <title>Insight Tag Checker — Live</title>
+    <link rel="stylesheet" href="../popup/popup.css" />
+    <link rel="stylesheet" href="./sidepanel.css" />
   </head>
   <body>
     <header class="topbar">
@@ -18,7 +19,6 @@
     </header>
 
     <main id="content">
-      <!-- Base tag status hero -->
       <section id="hero" class="hero hero--unknown">
         <div class="hero__dot" aria-hidden="true"></div>
         <div class="hero__body">
@@ -27,7 +27,6 @@
         </div>
       </section>
 
-      <!-- Partner IDs -->
       <section class="block">
         <h3 class="block__title">Partner ID<span id="pid-count" class="muted"></span></h3>
         <div id="pids" class="chips">
@@ -35,7 +34,6 @@
         </div>
       </section>
 
-      <!-- Conversions -->
       <section class="block">
         <h3 class="block__title">
           Event conversions<span id="conv-count" class="muted"></span>
@@ -43,26 +41,31 @@
         <ul id="conversions" class="list">
           <li class="empty muted">No event-specific conversions captured yet.</li>
         </ul>
-        <p class="hint">
-          Conversions that navigate away (form submits, CTA clicks) are kept in the
-          live panel's timeline so you can still read their ID.
-        </p>
       </section>
 
-      <!-- Actions -->
-      <section class="block">
-        <div class="actions">
-          <button id="open-panel" type="button" class="btn btn--primary">
-            Open live panel
-          </button>
-          <button id="copy-report" type="button" class="btn">Copy report</button>
-        </div>
-      </section>
-
-      <!-- Warnings -->
       <section id="warnings-block" class="block" hidden>
         <h3 class="block__title">Notices</h3>
         <ul id="warnings" class="list list--warnings"></ul>
+      </section>
+
+      <!-- Decoded session timeline — survives navigation -->
+      <section class="block">
+        <h3 class="block__title">
+          Timeline<span id="timeline-count" class="muted"></span>
+        </h3>
+        <p class="hint">
+          Every tag request this tab has made, newest first. Kept across page loads,
+          so a conversion that navigates away is still readable here.
+        </p>
+        <div id="timeline"></div>
+      </section>
+
+      <section class="block">
+        <div class="actions">
+          <button id="copy-report" type="button" class="btn btn--primary">Copy report</button>
+          <button id="export-csv" type="button" class="btn">Export CSV</button>
+          <button id="clear" type="button" class="btn">Clear</button>
+        </div>
       </section>
     </main>
 
@@ -70,6 +73,6 @@
       <span class="muted">Reads network activity &amp; page data locally. Nothing leaves your browser.</span>
     </footer>
 
-    <script type="module" src="./popup.js"></script>
+    <script type="module" src="./sidepanel.js"></script>
   </body>
 </html>

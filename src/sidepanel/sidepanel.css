@@ -1,0 +1,18 @@
+/* Side-panel overrides on top of the shared popup stylesheet.
+   The panel is user-resizable, so it must be fluid rather than the popup's 360px. */
+
+body {
+  width: auto;
+  min-width: 280px;
+}
+
+.brand__host {
+  max-width: none;
+}
+
+/* The timeline is the panel's main working area — let it scroll on its own so the
+   verdict at the top stays reachable. */
+#timeline {
+  max-height: 60vh;
+  overflow-y: auto;
+}

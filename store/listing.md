@@ -16,9 +16,9 @@ file goes in which slot. Copy-paste ready.
 
 ### Summary (max 132 characters)
 ```
-Check if your LinkedIn Insight Tag & conversion events are firing — live, on any site, 100% local.
+Check if your LinkedIn Insight Tag & conversions are firing, and decode every tag request — live, on any site, 100% local.
 ```
-(98 characters — already set in `manifest.json` → `description`, so they match.)
+(122 characters — already set in `manifest.json` → `description`, so they match.)
 
 ### Category
 **Developer Tools**
@@ -38,6 +38,15 @@ WHAT IT CHECKS
 ✔ Event conversions — captures each conversion the moment it fires, with its conversion ID, and whether it came from a lintrk() JavaScript call or an image pixel. Click a button or submit a form with the popup open and watch it appear live.
 ✔ Consent gates — detects OneTrust, Cookiebot, Usercentrics, TrustArc and more, and tells you when a consent banner is holding your tag back until cookies are accepted.
 
+NOTHING GETS LOST
+Conversions that fire on a click and then navigate away — form submits, CTA clicks, the ones that matter most — used to vanish before you could read them. The live panel keeps a timeline of every tag request for the whole tab session, grouped by page, so the conversion ID is still there after the thank-you page loads.
+
+A DECODER, NOT JUST A LIGHT
+Open the live side panel to see every tag request decoded into readable parameters — no Network tab, no DevTools required. Alongside the LinkedIn Insight Tag it also decodes Google Analytics 4, Google Ads and the Meta Pixel, so you can see what else fires on the page. Only the LinkedIn tag is diagnosed; the rest is context.
+
+EVIDENCE YOU CAN SEND
+One click copies a clean, plain-language report you can paste into an email or a ticket, or exports the full request log as CSV.
+
 IT TELLS THE TRUTH
 Most checkers cry "broken" the moment they see nothing. This one knows the difference between:
 • Firing — the tag fired and reached LinkedIn.
@@ -47,7 +56,7 @@ Most checkers cry "broken" the moment they see nothing. This one knows the diffe
 So you never mistake your own ad blocker, or a consent banner, for a broken install.
 
 PRIVATE BY DESIGN
-Everything runs locally in your browser. No accounts, no sign-up, and no data ever leaves your device. It only watches requests to LinkedIn's own tag endpoints.
+Everything runs locally in your browser. No accounts, no sign-up, and no data ever leaves your device. It only watches requests to a fixed list of known marketing tag endpoints (LinkedIn, Google Analytics 4, Google Ads, Meta) — never your general browsing.
 
 WHO IT'S FOR
 Performance marketers, agencies, and web teams QA-ing LinkedIn Ads conversion tracking.
@@ -87,16 +96,17 @@ To regenerate or tweak them, see `store/assets/README.md`.
 
 ### Single purpose (one sentence)
 ```
-Verify that the LinkedIn Insight Tag and its event-specific conversions are correctly installed and firing on the current page.
+Inspect the marketing tag requests a page sends — diagnosing whether the LinkedIn Insight Tag and its event-specific conversions are correctly installed and firing, and decoding each observed request's parameters for review.
 ```
 
 ### Permission justifications
 Copy from `store/permissions-justification.md`. Summary:
-- **webRequest** — read-only observation of whether the Insight Tag's requests fire and complete. No blocking or modification.
-- **Host access to `px.ads.linkedin.com` and `snap.licdn.com`** — scopes that observation to LinkedIn's tag endpoints only.
+- **webRequest** — read-only observation of whether marketing tag requests fire and complete. No blocking or modification.
+- **host_permissions `<all_urls>`** — Chrome only dispatches a `webRequest` event when the extension has host access to **both** the request URL and the initiating page, and users audit arbitrary sites. The listeners themselves stay filtered to the fixed vendor endpoint list (LinkedIn, GA4, Google Ads, Meta) — see the table in `permissions-justification.md`.
 - **Content scripts on all sites** — the tool must audit any website the user chooses; the scripts only read LinkedIn Insight Tag signals and send nothing off-device.
-- **storage** — holds per-tab results in session storage (cleared on tab close).
+- **storage** — holds per-tab results and the decoded timeline in session storage (cleared on tab close).
 - **activeTab** — lets the popup read the active tab's URL to label the report.
+- **sidePanel** — shows the live decoded timeline beside the page; same local data as the popup.
 - **Remote code** — none. No remotely hosted code is used.
 
 ### Data usage (checkboxes)
@@ -128,7 +138,10 @@ https://<your-github-username>.github.io/<repo-name>/privacy-policy.html
   - For a free personal project, **Non-trader** is the usual pick. Choose **Trader** if this is for your company/agency.
 
 ## 6. Pre-submit checklist
-- [ ] Upload `insight-tag-checker-0.1.0.zip` (built `dist/`, manifest at the zip root).
+- [ ] Upload `insight-tag-checker-0.2.0.zip` (built `dist/`, manifest at the zip root).
+- [ ] **Screenshots regenerated** — the UI gained a side panel, a decoded timeline and
+      export buttons in 0.2.0, so the existing 5 shots no longer match the product.
+      Add at least one showing the live panel timeline.
 - [ ] Description, summary, category (Developer Tools), language filled in.
 - [ ] All 5 screenshots + small promo tile uploaded.
 - [ ] Single purpose + every permission justification filled in.

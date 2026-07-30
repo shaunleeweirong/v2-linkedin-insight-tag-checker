@@ -74,3 +74,32 @@ export function parseInsightRequest(rawUrl) {
 
   return null;
 }
+
+/**
+ * Classify a chrome.webRequest error string.
+ *
+ * This distinction matters: a conversion that fires on click and then navigates
+ * away has its beacon CANCELLED by the navigation (`net::ERR_ABORTED`). Treating
+ * that like an ad-blocker hit made the extension accuse the user's own browser of
+ * blocking a tag that actually worked. Only a genuine block (or a DNS-level one,
+ * e.g. Pi-hole) should ever drive the 'blocked' verdict.
+ *
+ * @param {string|null|undefined} error
+ * @returns {'blocked' | 'aborted' | 'network' | 'error' | null}
+ */
+export function classifyError(error) {
+  if (!error) return null;
+  const e = String(error);
+
+  if (/BLOCKED_BY_CLIENT|BLOCKED_BY_ADMINISTRATOR|BLOCKED_BY_RESPONSE/i.test(e)) return 'blocked';
+  if (/ABORTED/i.test(e)) return 'aborted';
+  if (/NAME_NOT_RESOLVED|ADDRESS_UNREACHABLE|CONNECTION_(?:REFUSED|RESET|CLOSED|FAILED)|TIMED_OUT|INTERNET_DISCONNECTED/i.test(e)) {
+    return 'network';
+  }
+  return 'error';
+}
+
+/** Does this error kind mean the tag was genuinely prevented from reaching LinkedIn? */
+export function isBlockingError(errorKind) {
+  return errorKind === 'blocked' || errorKind === 'network';
+}

@@ -4,9 +4,11 @@ import {
   reduce,
   deriveBaseStatus,
   deriveWarnings,
-  getPartnerIds
+  getPartnerIds,
+  TIMELINE_CAP
 } from './state.js';
 import { parseInsightRequest } from './beacon-parse.js';
+import { decodeRequest } from './providers/index.js';
 
 // Convenience: run a list of events through the reducer.
 function run(events, start = null) {
@@ -17,6 +19,7 @@ const domEvent = (globals) => ({ type: 'dom', globals });
 const requestEvent = (url, phase, extra = {}) => ({
   type: 'request',
   req: parseInsightRequest(url),
+  decoded: decodeRequest(url),
   phase,
   ...extra
 });
@@ -102,7 +105,7 @@ describe('conversions', () => {
   });
 });
 
-describe('navigation resets state', () => {
+describe('navigation resets the diagnostic but keeps the timeline', () => {
   it('clears prior evidence on navigation', () => {
     const s = run([
       domEvent({ partnerIds: ['123'], hasLintrk: true, scriptPresent: true }),
@@ -110,6 +113,102 @@ describe('navigation resets state', () => {
     ]);
     expect(s.url).toBe('https://new.example.com');
     expect(s.domGlobals).toBeNull();
+    expect(s.conversions).toHaveLength(0);
+  });
+
+  // The bug this whole feature exists to fix: a conversion that fires on click and
+  // then navigates (form submit → thank-you page) used to be erased before the
+  // marketer could read its ID.
+  it('keeps a conversion ID readable after the click navigates away', () => {
+    const s = run([
+      { type: 'lintrk', conversionId: 12345678 },
+      requestEvent('https://px.ads.linkedin.com/collect/?pid=1&conversionId=12345678&fmt=gif', 'completed', {
+        statusCode: 200
+      }),
+      { type: 'navigation', url: 'https://example.com/thank-you' }
+    ]);
+
+    // Per-page diagnostic is correctly reset...
+    expect(s.conversions).toHaveLength(0);
+    // ...but the evidence survives on the timeline.
+    const ids = s.timeline.filter((e) => e.conversionId).map((e) => e.conversionId);
+    expect(ids).toContain('12345678');
+  });
+
+  it('appends a page marker and increments pageSeq', () => {
+    const s = run([
+      { type: 'navigation', url: 'https://a.example.com' },
+      { type: 'navigation', url: 'https://b.example.com' }
+    ]);
+    const pages = s.timeline.filter((e) => e.kind === 'page');
+    expect(pages.map((p) => p.url)).toEqual(['https://a.example.com', 'https://b.example.com']);
+    expect(s.pageSeq).toBe(2);
+  });
+
+  it('caps the timeline, dropping the oldest entries', () => {
+    const events = Array.from({ length: TIMELINE_CAP + 25 }, (_, i) => ({
+      type: 'navigation',
+      url: `https://example.com/${i}`
+    }));
+    const s = run(events);
+    expect(s.timeline).toHaveLength(TIMELINE_CAP);
+    expect(s.timeline[0].url).not.toBe('https://example.com/0');
+  });
+});
+
+describe('error classification', () => {
+  it('does NOT report blocked when navigation cancels the beacon', () => {
+    // ERR_ABORTED is what Chrome reports for an in-flight beacon killed by a
+    // navigation — normal behaviour, not the user's ad blocker.
+    const s = run([
+      domEvent({ partnerIds: ['123'], hasLintrk: true, scriptPresent: true }),
+      requestEvent('https://px.ads.linkedin.com/collect/?pid=123&conversionId=9&fmt=gif', 'error', {
+        error: 'net::ERR_ABORTED'
+      })
+    ]);
+    expect(deriveBaseStatus(s)).not.toBe('blocked');
+    expect(s.blockedCount).toBe(0);
+    expect(deriveWarnings(s).map((w) => w.code)).not.toContain('beacons-blocked');
+  });
+
+  it('still reports blocked for a genuine ad-blocker hit', () => {
+    const s = run([
+      domEvent({ partnerIds: ['123'], hasLintrk: true, scriptPresent: true }),
+      requestEvent('https://px.ads.linkedin.com/collect/?pid=123&fmt=js', 'error', {
+        error: 'net::ERR_BLOCKED_BY_CLIENT'
+      })
+    ]);
+    expect(deriveBaseStatus(s)).toBe('blocked');
+  });
+
+  it('treats DNS-level blocking (Pi-hole and friends) as blocked', () => {
+    const s = run([
+      requestEvent('https://px.ads.linkedin.com/collect/?pid=123&fmt=js', 'error', {
+        error: 'net::ERR_NAME_NOT_RESOLVED'
+      })
+    ]);
+    expect(deriveBaseStatus(s)).toBe('blocked');
+  });
+
+  it('records the aborted beacon on the timeline anyway', () => {
+    const s = run([
+      requestEvent('https://px.ads.linkedin.com/collect/?pid=1&conversionId=5&fmt=gif', 'error', {
+        error: 'net::ERR_ABORTED'
+      })
+    ]);
+    expect(s.timeline.find((e) => e.kind === 'request')).toMatchObject({ errorKind: 'aborted' });
+  });
+});
+
+describe('observed (non-LinkedIn) vendors', () => {
+  it('logs them on the timeline without touching the LinkedIn verdict', () => {
+    const s = run([
+      domEvent({ partnerIds: ['123'], hasLintrk: true, scriptPresent: true }),
+      requestEvent('https://www.facebook.com/tr/?id=999&ev=Lead', 'completed', { statusCode: 200 })
+    ]);
+    expect(s.timeline.some((e) => e.providerKey === 'METAPIXEL')).toBe(true);
+    // A Meta pixel firing must never make the LinkedIn tag look like it fired.
+    expect(deriveBaseStatus(s)).toBe('present');
     expect(s.conversions).toHaveLength(0);
   });
 });

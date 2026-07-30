@@ -30,7 +30,7 @@
       <strong>Insight Tag Checker for LinkedIn</strong>
     </div>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 16 July 2026</p>
+    <p class="updated">Last updated: 30 July 2026</p>
 
     <p class="lead"><strong>This extension collects nothing, sends nothing, and stores nothing off your device.</strong></p>
 
@@ -38,13 +38,21 @@
     <p>
       Insight Tag Checker for LinkedIn is a developer/marketer diagnostic tool. It inspects the page you are
       viewing to determine whether the LinkedIn Insight Tag and its event-specific conversion requests are
-      installed and firing. To do this it:
+      installed and firing, and decodes the marketing tag requests the page sends so you can read their
+      parameters. To do this it:
     </p>
     <ul>
       <li>
-        Observes network requests <strong>to LinkedIn's tag endpoints only</strong>
-        (<code>px.ads.linkedin.com</code> and <code>snap.licdn.com</code>) using the browser's
-        <code>webRequest</code> API, reading the request URL and whether it completed or errored.
+        Observes network requests <strong>to a fixed list of known marketing-tag endpoints only</strong>,
+        using the browser's <code>webRequest</code> API, reading the request URL and whether it completed or
+        errored. That list is:
+        <ul>
+          <li>LinkedIn — <code>px.ads.linkedin.com</code>, <code>snap.licdn.com</code></li>
+          <li>Google Analytics 4 — <code>google-analytics.com</code>, <code>analytics.google.com</code></li>
+          <li>Google Ads — <code>googleads.g.doubleclick.net</code>, <code>www.googleadservices.com</code></li>
+          <li>Meta Pixel — <code>facebook.com/tr</code></li>
+        </ul>
+        No other requests are observed. General browsing activity is never inspected, recorded or transmitted.
       </li>
       <li>
         Reads LinkedIn Insight Tag values already present in the page
@@ -52,6 +60,11 @@
         page makes to LinkedIn's own <code>lintrk()</code> function.
       </li>
     </ul>
+    <p>
+      Only the LinkedIn Insight Tag is diagnosed. The other vendors above are decoded and listed purely as
+      context — so you can see what else fires alongside your Insight Tag — and never change the LinkedIn
+      verdict.
+    </p>
 
     <h2>What data is collected</h2>
     <p><strong>None.</strong> The extension does not collect, log, sell, or transmit any personal information,
@@ -59,18 +72,21 @@
 
     <h2>Where data goes</h2>
     <p>
-      All analysis happens locally in your browser. Results are held only in
-      <code>chrome.storage.session</code> (in-memory session storage) keyed to the current tab, and are
-      <strong>discarded when the tab is closed or the browser is restarted</strong>. No data is ever sent to us
-      or to any third party. The extension has no backend server and makes no network requests of its own.
+      All analysis happens locally in your browser. Results — including the per-tab timeline of decoded tag
+      requests, which is retained across page loads so a conversion that navigates away is still readable —
+      are held only in <code>chrome.storage.session</code> (in-memory session storage) keyed to the current
+      tab, and are <strong>discarded when the tab is closed or the browser is restarted</strong>. You can also
+      clear a tab's timeline at any time from the side panel. No data is ever sent to us or to any third
+      party. The extension has no backend server and makes no network requests of its own.
     </p>
 
     <h2>Permissions</h2>
     <p>
       Every permission exists solely to read local signals for the diagnostic described above:
-      <code>webRequest</code> and host access to LinkedIn's tag endpoints to observe whether the tag fires;
-      <code>storage</code> for transient per-tab results; <code>activeTab</code> for the popup; and content
-      scripts so the tool can audit any website you choose. Nothing is transmitted off-device.
+      <code>webRequest</code> and host access to observe whether the tag endpoints listed above are reached;
+      <code>storage</code> for transient per-tab results; <code>activeTab</code> for the popup;
+      <code>sidePanel</code> to show the live timeline beside the page; and content scripts so the tool can
+      audit any website you choose. Nothing is transmitted off-device.
     </p>
 
     <h2>Contact</h2>

@@ -8,6 +8,13 @@
 //
 // Everything here is pure so it can be unit-tested without a browser.
 
+import { classifyError, isBlockingError } from './beacon-parse.js';
+
+// The timeline is session-scoped and append-only, so it needs a ceiling. 300 entries
+// is far more than a QA pass produces while staying well inside the session-storage
+// quota once several tabs are open.
+export const TIMELINE_CAP = 300;
+
 /** @returns {object} a fresh, empty state for a tab. */
 export function initialTabState(url = null) {
   return {
@@ -18,8 +25,19 @@ export function initialTabState(url = null) {
     conversions: [], // merged per conversionId (see normaliseConversion)
     lintrkCalls: [], // raw intent log: { conversionId, ts }
     blockedCount: 0, // beacons that errored (likely the auditor's own blocker)
+
+    // --- Session-scoped: these SURVIVE navigation (see the navigation branch) ---
+    timeline: [], // append-only decoded log, page markers included
+    pageSeq: 0, // increments once per committed navigation
+
     updatedAt: 0
   };
+}
+
+/** Append to the timeline, dropping the oldest entries once the cap is reached. */
+function appendTimeline(timeline, entry) {
+  const next = [...(timeline || []), entry];
+  return next.length > TIMELINE_CAP ? next.slice(next.length - TIMELINE_CAP) : next;
 }
 
 /**
@@ -31,7 +49,22 @@ export function initialTabState(url = null) {
  */
 export function reduce(state, event, now = 0) {
   if (event.type === 'navigation') {
+    // Reset the PER-PAGE diagnostic (so the verdict never goes stale) but carry the
+    // session timeline across, marked with a page boundary.
+    //
+    // This is the fix for the tool's worst failure mode: a conversion that fires on
+    // click and then navigates — a form submit to a thank-you page, i.e. most
+    // lead-gen conversions — used to be erased before the marketer could read its
+    // conversion ID.
+    const prev = state || initialTabState();
     const fresh = initialTabState(event.url);
+    fresh.pageSeq = (prev.pageSeq || 0) + 1;
+    fresh.timeline = appendTimeline(prev.timeline, {
+      kind: 'page',
+      seq: fresh.pageSeq,
+      url: event.url || null,
+      ts: now
+    });
     fresh.updatedAt = now;
     return fresh;
   }
@@ -47,12 +80,42 @@ export function reduce(state, event, now = 0) {
       return s;
 
     case 'request': {
-      const { req, phase, statusCode = null, error = null } = event;
+      const { req, phase, statusCode = null, error = null, decoded = null } = event;
+
+      const errorKind = classifyError(error);
+      // Only a genuine block counts against the verdict. A navigation-cancelled
+      // beacon (ERR_ABORTED) is normal and must never read as "blocked".
+      const blocking = isBlockingError(errorKind);
+      const blockingError = blocking ? error : null;
+
+      // Every observed vendor request lands on the timeline — LinkedIn or not.
+      if (decoded) {
+        s.timeline = appendTimeline(s.timeline, {
+          kind: 'request',
+          seq: s.pageSeq || 0,
+          ts: now,
+          providerKey: decoded.providerKey,
+          providerName: decoded.providerName,
+          tier: decoded.tier,
+          label: decoded.label,
+          account: decoded.account,
+          event: decoded.event,
+          isConversion: decoded.isConversion,
+          conversionId: decoded.conversionId,
+          params: decoded.params,
+          url: decoded.url || null,
+          phase,
+          statusCode,
+          errorKind
+        });
+      }
+
+      // Diagnostics are LinkedIn-only: everything below this line stays first-class.
       if (!req) return s;
 
       if (req.kind === 'library') {
-        s.library = mergePhase(s.library, phase, statusCode, error);
-        if (error) s.blockedCount += 1;
+        s.library = mergePhase(s.library, phase, statusCode, blockingError);
+        if (blocking) s.blockedCount += 1;
         return s;
       }
 
@@ -64,22 +127,24 @@ export function reduce(state, event, now = 0) {
           fmt: req.fmt,
           phase,
           statusCode,
-          error,
+          error: blockingError,
+          errorKind,
           trigger: 'network',
           ts: now
         });
-        if (error) s.blockedCount += 1;
+        if (blocking) s.blockedCount += 1;
       } else {
         const prev = s.baseBeacon || {};
         s.baseBeacon = {
           pid: req.pid || prev.pid || null,
           fmt: req.fmt || prev.fmt || null,
           fired: phase === 'completed' ? true : !!prev.fired,
-          error: error != null ? error : prev.error || null,
+          error: blockingError != null ? blockingError : prev.error || null,
+          errorKind: errorKind != null ? errorKind : prev.errorKind || null,
           statusCode: statusCode != null ? statusCode : prev.statusCode ?? null,
           ts: now
         };
-        if (error) s.blockedCount += 1;
+        if (blocking) s.blockedCount += 1;
       }
       return s;
     }
@@ -91,6 +156,20 @@ export function reduce(state, event, now = 0) {
         conversionId,
         trigger: 'lintrk',
         ts: now
+      });
+      // Log the intent too: if a click navigates before its beacon is observed, the
+      // lintrk() call may be the only surviving evidence the conversion happened.
+      s.timeline = appendTimeline(s.timeline, {
+        kind: 'lintrk',
+        seq: s.pageSeq || 0,
+        ts: now,
+        providerKey: 'LINKEDIN',
+        providerName: 'LinkedIn Insight Tag',
+        tier: 'diagnosed',
+        label: `lintrk('track') #${conversionId}`,
+        conversionId,
+        isConversion: true,
+        params: []
       });
       return s;
     }
@@ -116,6 +195,7 @@ function normaliseConversion(incoming) {
     fmt: incoming.fmt || null,
     fired: incoming.phase === 'completed',
     error: incoming.error ?? null,
+    errorKind: incoming.errorKind ?? null,
     statusCode: incoming.statusCode ?? null,
     viaLintrk: incoming.trigger === 'lintrk',
     viaNetwork: incoming.trigger === 'network',
@@ -134,6 +214,7 @@ function upsertConversion(list, incoming) {
   if (incoming.trigger === 'network') merged.viaNetwork = true;
   if (incoming.phase === 'completed') merged.fired = true;
   if (incoming.error != null) merged.error = incoming.error;
+  if (incoming.errorKind != null) merged.errorKind = incoming.errorKind;
   if (incoming.statusCode != null) merged.statusCode = incoming.statusCode;
   merged.ts = incoming.ts ?? merged.ts;
 

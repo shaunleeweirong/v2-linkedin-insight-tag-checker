@@ -87,6 +87,26 @@
     <button id="lintrk-btn">Fire via lintrk() — conversion #12345678</button>
     <button id="pixel-btn" class="secondary">Fire via image pixel — conversion #87654321</button>
 
+    <h2>Fire a conversion that navigates away</h2>
+    <p class="note">
+      The realistic lead-gen case: a form submit or CTA click fires a conversion and
+      then leaves the page. Open the <strong>live panel</strong> first, click below,
+      and confirm conversion <code>#55550000</code> is still readable in the timeline
+      under the previous page — and that the verdict does <strong>not</strong> say
+      "Blocked" just because the beacon was cancelled by the navigation.
+    </p>
+    <button id="nav-btn">Fire conversion #55550000 → go to thank-you page</button>
+
+    <h2>Adjacent vendor tags (decoder check)</h2>
+    <p class="note">
+      These fire requests to other vendors' tag endpoints with <strong>dummy
+      IDs</strong>, to confirm they are decoded into the timeline. They must
+      <strong>not</strong> change the LinkedIn verdict.
+    </p>
+    <button id="meta-btn" class="secondary">Meta Pixel — Lead</button>
+    <button id="ga4-btn" class="secondary">GA4 — purchase</button>
+    <button id="gads-btn" class="secondary">Google Ads — AW-123456</button>
+
     <p class="note" id="log"></p>
 
     <script>
@@ -104,6 +124,50 @@
           Date.now();
         document.body.appendChild(img);
         log.textContent = "Injected image pixel for conversion #87654321.";
+      });
+
+      function firePixel(url, message) {
+        const img = new Image(1, 1);
+        img.src = url;
+        document.body.appendChild(img);
+        log.textContent = message;
+      }
+
+      document.getElementById("meta-btn").addEventListener("click", () => {
+        firePixel(
+          "https://www.facebook.com/tr/?id=0000000000&ev=Lead&cd[value]=10&cd[currency]=USD&t=" +
+            Date.now(),
+          "Fired a Meta Pixel Lead event (dummy pixel ID)."
+        );
+      });
+
+      document.getElementById("ga4-btn").addEventListener("click", () => {
+        firePixel(
+          "https://www.google-analytics.com/g/collect?v=2&tid=G-TEST0000&en=purchase&cid=1.1&ep.method=test&t=" +
+            Date.now(),
+          "Fired a GA4 purchase event (dummy measurement ID)."
+        );
+      });
+
+      document.getElementById("gads-btn").addEventListener("click", () => {
+        firePixel(
+          "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/123456/?label=test&random=" +
+            Date.now(),
+          "Fired a Google Ads conversion (dummy conversion ID)."
+        );
+      });
+
+      // Reproduces the failure this feature exists to fix: the conversion fires and
+      // the page navigates immediately, so the beacon is cancelled mid-flight and
+      // the per-page state is reset before anyone can read the ID.
+      document.getElementById("nav-btn").addEventListener("click", () => {
+        window.lintrk("track", { conversion_id: 55550000 });
+        const img = new Image(1, 1);
+        img.src =
+          "https://px.ads.linkedin.com/collect/?pid=0000000&conversionId=55550000&fmt=img&t=" +
+          Date.now();
+        document.body.appendChild(img);
+        window.location.href = "./thankyou.html";
       });
     </script>
   </body>

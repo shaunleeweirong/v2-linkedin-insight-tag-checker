@@ -8,7 +8,8 @@
 // listeners MUST be registered synchronously here (not inside async callbacks),
 // and state is mirrored to chrome.storage.session so it survives a restart.
 
-import { parseInsightRequest, REQUEST_FILTERS } from '../shared/beacon-parse.js';
+import { parseInsightRequest } from '../shared/beacon-parse.js';
+import { ALL_REQUEST_FILTERS, decodeRequest } from '../shared/providers/index.js';
 import { initialTabState, reduce, deriveBaseStatus } from '../shared/state.js';
 
 const tabStates = new Map();
@@ -84,7 +85,9 @@ function updateBadge(tabId, state) {
 // ---------------------------------------------------------------------------
 // Network observation (registered synchronously at top level)
 // ---------------------------------------------------------------------------
-const FILTER = { urls: REQUEST_FILTERS };
+// Listens across every registered vendor. LinkedIn is still the only provider that
+// feeds the diagnostic; the rest only populate the timeline.
+const FILTER = { urls: ALL_REQUEST_FILTERS };
 
 // Use onResponseStarted (not onCompleted) for the "fired" signal. LinkedIn's base
 // /collect beacon 302-redirects through a cookie-sync chain; onCompleted only
@@ -94,11 +97,12 @@ const FILTER = { urls: REQUEST_FILTERS };
 // reached LinkedIn" signal. The reducer is idempotent, so repeat events are safe.
 chrome.webRequest.onResponseStarted.addListener(
   (details) => {
-    const req = parseInsightRequest(details.url);
-    if (!req) return;
+    const decoded = decodeRequest(details.url);
+    if (!decoded) return;
     apply(details.tabId, {
       type: 'request',
-      req,
+      req: parseInsightRequest(details.url), // null for the observed-only vendors
+      decoded,
       phase: 'completed',
       statusCode: details.statusCode
     });
@@ -108,9 +112,15 @@ chrome.webRequest.onResponseStarted.addListener(
 
 chrome.webRequest.onErrorOccurred.addListener(
   (details) => {
-    const req = parseInsightRequest(details.url);
-    if (!req) return;
-    apply(details.tabId, { type: 'request', req, phase: 'error', error: details.error });
+    const decoded = decodeRequest(details.url);
+    if (!decoded) return;
+    apply(details.tabId, {
+      type: 'request',
+      req: parseInsightRequest(details.url),
+      decoded,
+      phase: 'error',
+      error: details.error
+    });
   },
   FILTER
 );
@@ -138,6 +148,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     case 'lintrk':
       apply(tabId, { type: 'lintrk', conversionId: msg.conversionId });
+      return;
+
+    case 'clear':
+      // Explicit user reset from the side panel — drops the session timeline too.
+      if (tabId != null && tabId >= 0) {
+        const fresh = initialTabState(msg.url || null);
+        fresh.updatedAt = Date.now();
+        tabStates.set(tabId, fresh);
+        persist(tabId, fresh);
+        updateBadge(tabId, fresh);
+      }
+      sendResponse({ ok: true });
       return;
 
     case 'getState':
