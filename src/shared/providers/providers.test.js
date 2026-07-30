@@ -172,6 +172,109 @@ describe('Google Tag Manager provider', () => {
   });
 });
 
+describe('HubSpot provider', () => {
+  it('decodes the Hub ID and event name', () => {
+    const r = decodeRequest(
+      'https://track.hubspot.com/__ptq.gif?a=1234567&id=demo-request&pu=https%3A%2F%2Fexample.com'
+    );
+    expect(r).toMatchObject({ providerKey: 'HUBSPOT', account: '1234567', event: 'demo-request' });
+    expect(findParam(r.params, 'a')).toMatchObject({ name: 'Hub ID (Account)' });
+  });
+
+  it('falls back to a page view when no event id is present', () => {
+    const r = decodeRequest('https://track.hubspot.com/__ptq.gif?a=1234567');
+    expect(r.label).toBe('HubSpot page view');
+  });
+});
+
+describe('Reddit provider', () => {
+  it('decodes advertiser ID, event and m.* metadata', () => {
+    const r = decodeRequest(
+      'https://alb.reddit.com/rp.gif?id=t2_abc&event=Lead&m.value=50&m.currency=USD'
+    );
+    expect(r).toMatchObject({ providerKey: 'REDDIT', account: 't2_abc', event: 'Lead' });
+    expect(findParam(r.params, 'm.value')).toMatchObject({ name: 'Value' });
+  });
+
+  it('labels undeclared m.* keys readably', () => {
+    const r = decodeRequest('https://alb.reddit.com/rp.gif?id=1&m.somethingNew=x');
+    expect(findParam(r.params, 'm.somethingNew')).toMatchObject({ name: 'Metadata: somethingNew' });
+  });
+});
+
+describe('Marketo provider', () => {
+  it('reads the Munchkin ID from the subdomain when the param is absent', () => {
+    const r = decodeRequest('https://123-ABC-456.mktoresp.com/webevents/visitWebPage?_mchRu=%2Fpricing');
+    expect(r).toMatchObject({ providerKey: 'MARKETO', account: '123-ABC-456', event: 'visitWebPage' });
+  });
+
+  it('prefers the explicit _mchId param', () => {
+    const r = decodeRequest('https://123-ABC-456.mktoresp.com/webevents/clickLink?_mchId=999-ZZZ-111');
+    expect(r.account).toBe('999-ZZZ-111');
+    expect(r.event).toBe('clickLink');
+  });
+
+  it('passes undocumented _mch params through raw rather than guessing', () => {
+    const r = decodeRequest('https://a.mktoresp.com/webevents/visitWebPage?_mchCn=x');
+    expect(findParam(r.params, '_mchCn')).toMatchObject({ name: '_mchCn', group: 'Other' });
+  });
+});
+
+describe('Pardot provider', () => {
+  it('decodes account and visitor IDs', () => {
+    const r = decodeRequest(
+      'https://pi.pardot.com/analytics?account_id=555&visitor_id=6780&title=Pricing'
+    );
+    expect(r).toMatchObject({ providerKey: 'PARDOT', account: '555' });
+    expect(findParam(r.params, 'visitor_id')).toMatchObject({ name: 'Visitor ID' });
+  });
+});
+
+describe('ABM providers', () => {
+  it('detects a Demandbase company lookup', () => {
+    const r = decodeRequest(
+      'https://api.company-target.com/api/v2/ip.json?key=abc123&page_title=Pricing'
+    );
+    expect(r).toMatchObject({ providerKey: 'DEMANDBASE', account: 'abc123', event: 'identify' });
+  });
+
+  it('detects a 6sense lookup and shows its params raw', () => {
+    const r = decodeRequest('https://epsilon.6sense.com/v3/company/details?token=xyz');
+    expect(r).toMatchObject({ providerKey: 'SIXSENSE', event: 'identify' });
+    expect(findParam(r.params, 'token')).toMatchObject({ name: 'token', group: 'Other' });
+  });
+});
+
+describe('Adobe Analytics provider', () => {
+  const AA = 'https://example.sc.omtrdc.net/b/ss/myreportsuite/1/JS-2.0/s123?pageName=Home&c1=alpha&v2=beta&h1=lvl';
+
+  it('extracts the report suite from the URL path, not the query', () => {
+    const r = decodeRequest(AA);
+    expect(r).toMatchObject({ providerKey: 'ADOBEANALYTICS', account: 'myreportsuite' });
+    expect(r.label).toBe('Adobe page view: Home');
+  });
+
+  it('expands props, eVars and hierarchies', () => {
+    const { params } = decodeRequest(AA);
+    expect(findParam(params, 'c1')).toMatchObject({ name: 'prop1', group: 'Props' });
+    expect(findParam(params, 'v2')).toMatchObject({ name: 'eVar2', group: 'eVars' });
+    expect(findParam(params, 'h1')).toMatchObject({ name: 'Hierarchy 1', group: 'Hierarchy' });
+  });
+
+  it('distinguishes a link hit from a page view', () => {
+    const r = decodeRequest(
+      'https://example.sc.omtrdc.net/b/ss/rs1/1/s1?pe=lnk_o&pev2=Download%20PDF'
+    );
+    expect(r.event).toBe('link');
+    expect(r.label).toContain('Download PDF');
+  });
+
+  it('does not confuse the standalone v param with an eVar', () => {
+    const r = decodeRequest('https://example.sc.omtrdc.net/b/ss/rs1/1/s1?v=Y');
+    expect(findParam(r.params, 'v')).toMatchObject({ name: 'JavaScript Enabled' });
+  });
+});
+
 describe('registry', () => {
   it('returns null for unrelated URLs', () => {
     expect(matchProvider('https://example.com/collect?pid=1')).toBeNull();
@@ -200,7 +303,14 @@ describe('registry', () => {
       'https://analytics.tiktok.com/api/v2/pixel?sdkid=1': 'TIKTOK',
       'https://ct.pinterest.com/v3/?tid=1': 'PINTEREST',
       'https://tr.snapchat.com/p?pid=1': 'SNAPCHAT',
-      'https://analytics.twitter.com/i/adsct?txn_id=1': 'TWITTER'
+      'https://analytics.twitter.com/i/adsct?txn_id=1': 'TWITTER',
+      'https://alb.reddit.com/rp.gif?id=1': 'REDDIT',
+      'https://track.hubspot.com/__ptq.gif?a=1': 'HUBSPOT',
+      'https://1-ab-2.mktoresp.com/webevents/visitWebPage?_mchId=1': 'MARKETO',
+      'https://pi.pardot.com/analytics?account_id=1': 'PARDOT',
+      'https://epsilon.6sense.com/v3/company/details?t=1': 'SIXSENSE',
+      'https://api.company-target.com/api/v2/ip.json?key=1': 'DEMANDBASE',
+      'https://example.sc.omtrdc.net/b/ss/rs1/1/s1?pageName=x': 'ADOBEANALYTICS'
     };
     for (const [url, key] of Object.entries(expected)) {
       expect(matchProvider(url)?.key, url).toBe(key);

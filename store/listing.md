@@ -42,7 +42,11 @@ NOTHING GETS LOST
 Conversions that fire on a click and then navigate away — form submits, CTA clicks, the ones that matter most — used to vanish before you could read them. The live panel keeps a timeline of every tag request for the whole tab session, grouped by page, so the conversion ID is still there after the thank-you page loads.
 
 A DECODER, NOT JUST A LIGHT
-Open the live side panel to see every tag request decoded into readable parameters — no Network tab, no DevTools required. Alongside the LinkedIn Insight Tag it also decodes Google Analytics 4, Google Ads, Google Tag Manager, Meta Pixel, Microsoft Advertising UET, TikTok, Pinterest, Snapchat and X (Twitter), so you can see the whole tagging picture on one page. Only the LinkedIn tag is diagnosed; the rest is context.
+Open the live side panel to see every tag request decoded into readable parameters — no Network tab, no DevTools required. Alongside the LinkedIn Insight Tag it decodes 16 more:
+• Ads — Google Ads, Meta Pixel, Microsoft Advertising UET, TikTok, Pinterest, Snapchat, X (Twitter), Reddit
+• Analytics & tag management — Google Analytics 4, Google Tag Manager, Adobe Analytics
+• B2B marketing automation & ABM — HubSpot, Marketo, Salesforce Account Engagement (Pardot), 6sense, Demandbase
+So you can see the whole tagging picture on one page — including whether a LinkedIn lead actually reached your CRM. Only the LinkedIn tag is diagnosed; the rest is context.
 
 EVIDENCE YOU CAN SEND
 One click copies a clean, plain-language report you can paste into an email or a ticket, or exports the full request log as CSV.
@@ -138,7 +142,7 @@ https://<your-github-username>.github.io/<repo-name>/privacy-policy.html
   - For a free personal project, **Non-trader** is the usual pick. Choose **Trader** if this is for your company/agency.
 
 ## 6. Pre-submit checklist
-- [ ] Upload `insight-tag-checker-0.3.0.zip` (built `dist/`, manifest at the zip root).
+- [ ] Upload `insight-tag-checker-0.4.0.zip` (built `dist/`, manifest at the zip root).
 - [ ] **Screenshots regenerated** — the UI gained a side panel, a decoded timeline and
       export buttons in 0.2.0, so the existing 5 shots no longer match the product.
       Add at least one showing the live panel timeline.

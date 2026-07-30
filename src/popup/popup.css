@@ -478,6 +478,34 @@ details.event[open] > summary.event__head {
   background: #ecedee;
   color: #16181a;
 }
+.prov--reddit {
+  background: #ffeee6;
+  color: #a33200;
+}
+.prov--adobe {
+  background: #fdeaea;
+  color: #9b1c1c;
+}
+.prov--hubspot {
+  background: #ffefe6;
+  color: #a1441a;
+}
+.prov--marketo {
+  background: #f0e9fb;
+  color: #5a3a9e;
+}
+.prov--pardot {
+  background: #e4f1fb;
+  color: #14618f;
+}
+.prov--sixsense {
+  background: #eaf7ef;
+  color: #1a6b45;
+}
+.prov--demandbase {
+  background: #e9eefb;
+  color: #26418f;
+}
 
 /* ---- Decoded params ---- */
 .params {

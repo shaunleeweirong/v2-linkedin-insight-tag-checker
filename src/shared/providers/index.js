@@ -6,29 +6,46 @@
 // alongside the Insight Tag, and nothing more.
 
 import * as linkedin from './linkedin.js';
+// Analytics + tag management
 import * as ga4 from './ga4.js';
-import * as googleAds from './google-ads.js';
 import * as googleTagManager from './google-tag-manager.js';
+import * as adobeAnalytics from './adobe-analytics.js';
+// Paid media pixels
+import * as googleAds from './google-ads.js';
 import * as metaPixel from './meta-pixel.js';
 import * as microsoftUet from './microsoft-uet.js';
 import * as tiktok from './tiktok.js';
 import * as pinterest from './pinterest.js';
 import * as snapchat from './snapchat.js';
 import * as xTwitter from './x-twitter.js';
+import * as reddit from './reddit.js';
+// B2B marketing automation + ABM — where LinkedIn leads actually land
+import * as hubspot from './hubspot.js';
+import * as marketo from './marketo.js';
+import * as pardot from './pardot.js';
+import * as sixsense from './sixsense.js';
+import * as demandbase from './demandbase.js';
 
 // LinkedIn must stay first: matchProvider() returns the first hit, and LinkedIn is
 // the only provider whose result feeds the diagnostic.
 export const PROVIDERS = [
   linkedin,
   ga4,
-  googleAds,
   googleTagManager,
+  adobeAnalytics,
+  googleAds,
   metaPixel,
   microsoftUet,
   tiktok,
   pinterest,
   snapchat,
-  xTwitter
+  xTwitter,
+  reddit,
+  hubspot,
+  marketo,
+  pardot,
+  sixsense,
+  demandbase
 ];
 
 /** Every chrome.webRequest match pattern the service worker needs to listen on. */

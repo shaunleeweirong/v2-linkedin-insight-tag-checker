@@ -21,14 +21,21 @@ blocker. This one does both — it decodes *and* tells you what's wrong.
 - **Consent gates** — detects common CMPs (OneTrust, Cookiebot, TrustArc,
   Usercentrics, Osano, Didomi, IAB TCF) and, when the tag isn't firing, tells you
   the consent tool may be blocking it until marketing cookies are accepted.
-- **Adjacent vendor tags** — Google Analytics 4, Google Ads, Google Tag Manager, Meta
-  Pixel, Microsoft Advertising UET, TikTok, Pinterest, Snapchat and X (Twitter) are
-  decoded into the same timeline for context. They are **observed, never diagnosed**:
-  a Meta pixel firing can't make the LinkedIn verdict look healthy.
+- **Adjacent vendor tags** — 16 more providers are decoded into the same timeline for
+  context. They are **observed, never diagnosed**: a Meta pixel firing can't make the
+  LinkedIn verdict look healthy.
 
-  Google Tag Manager earns its slot on diagnostic grounds — most Insight Tags are
-  deployed *through* GTM, so "the tag didn't fire **and** the container never loaded"
-  identifies the root cause in one glance.
+  | Category | Providers |
+  | --- | --- |
+  | Ads | Google Ads, Meta Pixel, Microsoft Advertising UET, TikTok, Pinterest, Snapchat, X (Twitter), Reddit |
+  | Analytics & tag management | Google Analytics 4, Google Tag Manager, Adobe Analytics |
+  | B2B automation & ABM | HubSpot, Marketo, Salesforce Pardot, 6sense, Demandbase |
+
+  Two earn their slot on diagnostic rather than decoding grounds. **Google Tag
+  Manager**: most Insight Tags are deployed *through* GTM, so "the tag didn't fire
+  **and** the container never loaded" names the root cause in one glance. **HubSpot**:
+  LinkedIn Lead Gen Form submissions land there, so "did the lead reach the CRM?" sits
+  beside "did the conversion fire?".
 
 ## Nothing gets lost
 
@@ -58,6 +65,13 @@ navigation it triggered — is normal and must never read as blocked. See
 > **Scope:** event-specific conversions (fully observable client-side). Server-side
 > URL-rule conversions are matched inside LinkedIn and their conversion ID is never
 > visible in the browser — out of scope by design.
+
+> **First-party endpoints are out of scope, deliberately.** GA4 is matched on
+> Google-owned hosts and Adobe Analytics on Adobe-owned hosts. Enterprises often route
+> both through a first-party CNAME (`metrics.example.com/b/ss/…`), which we do *not*
+> catch — matching those paths on arbitrary hosts would mean inspecting request URLs
+> across the whole web, which is the opposite of the privacy claim. Same trade for
+> both vendors, kept consistent on purpose.
 
 > **TikTok caveat:** TikTok sends most event data as a JSON **POST body**, and we read
 > request URLs only (`onResponseStarted` exposes no body). So a TikTok request is

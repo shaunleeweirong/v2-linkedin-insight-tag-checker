@@ -39,7 +39,14 @@ const PROVIDER_CLASS = {
   TIKTOK: 'prov--tiktok',
   PINTEREST: 'prov--pinterest',
   SNAPCHAT: 'prov--snapchat',
-  TWITTER: 'prov--twitter'
+  TWITTER: 'prov--twitter',
+  REDDIT: 'prov--reddit',
+  ADOBEANALYTICS: 'prov--adobe',
+  HUBSPOT: 'prov--hubspot',
+  MARKETO: 'prov--marketo',
+  PARDOT: 'prov--pardot',
+  SIXSENSE: 'prov--sixsense',
+  DEMANDBASE: 'prov--demandbase'
 };
 
 function el(tag, className, text) {

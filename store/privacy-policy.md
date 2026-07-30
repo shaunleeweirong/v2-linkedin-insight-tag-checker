@@ -18,14 +18,21 @@ tag requests the page sends so you can read their parameters. To do this it:
   completed or errored. That list is:
   - LinkedIn — `px.ads.linkedin.com`, `snap.licdn.com`
   - Google Analytics 4 — `google-analytics.com`, `analytics.google.com`
-  - Google Ads — `googleads.g.doubleclick.net`, `www.googleadservices.com`
   - Google Tag Manager — `googletagmanager.com`
+  - Adobe Analytics — `2o7.net/b/ss`, `omtrdc.net/b/ss`
+  - Google Ads — `googleads.g.doubleclick.net`, `www.googleadservices.com`
   - Meta Pixel — `facebook.com/tr`
   - Microsoft Advertising UET — `bat.bing.com/action`
   - TikTok — `analytics.tiktok.com/api`
   - Pinterest — `ct.pinterest.com`
   - Snapchat — `snapchat.com/p`
   - X (Twitter) — `analytics.twitter.com/i/adsct`, `t.co/i/adsct`
+  - Reddit — `reddit.com/rp.gif`
+  - HubSpot — `track.hubspot.com/__ptq.gif`
+  - Marketo — `mktoresp.com/webevents`
+  - Salesforce Account Engagement (Pardot) — `pardot.com/analytics`
+  - 6sense — `6sense.com/v3/company/details`
+  - Demandbase — `api.company-target.com/api/v2/ip.json`
 
   No other requests are observed. General browsing activity is never inspected,
   recorded or transmitted.
