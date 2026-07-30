@@ -33,7 +33,13 @@ const PROVIDER_CLASS = {
   LINKEDIN: 'prov--linkedin',
   GA4: 'prov--ga4',
   GOOGLEADS: 'prov--googleads',
-  METAPIXEL: 'prov--meta'
+  GTM: 'prov--gtm',
+  METAPIXEL: 'prov--meta',
+  MSUET: 'prov--msuet',
+  TIKTOK: 'prov--tiktok',
+  PINTEREST: 'prov--pinterest',
+  SNAPCHAT: 'prov--snapchat',
+  TWITTER: 'prov--twitter'
 };
 
 function el(tag, className, text) {

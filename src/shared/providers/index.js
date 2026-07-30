@@ -8,9 +8,28 @@
 import * as linkedin from './linkedin.js';
 import * as ga4 from './ga4.js';
 import * as googleAds from './google-ads.js';
+import * as googleTagManager from './google-tag-manager.js';
 import * as metaPixel from './meta-pixel.js';
+import * as microsoftUet from './microsoft-uet.js';
+import * as tiktok from './tiktok.js';
+import * as pinterest from './pinterest.js';
+import * as snapchat from './snapchat.js';
+import * as xTwitter from './x-twitter.js';
 
-export const PROVIDERS = [linkedin, ga4, googleAds, metaPixel];
+// LinkedIn must stay first: matchProvider() returns the first hit, and LinkedIn is
+// the only provider whose result feeds the diagnostic.
+export const PROVIDERS = [
+  linkedin,
+  ga4,
+  googleAds,
+  googleTagManager,
+  metaPixel,
+  microsoftUet,
+  tiktok,
+  pinterest,
+  snapchat,
+  xTwitter
+];
 
 /** Every chrome.webRequest match pattern the service worker needs to listen on. */
 export const ALL_REQUEST_FILTERS = PROVIDERS.flatMap((p) => p.filters);

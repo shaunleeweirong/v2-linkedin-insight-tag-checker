@@ -450,9 +450,33 @@ details.event[open] > summary.event__head {
   background: #fef3e0;
   color: #8a5a00;
 }
+.prov--gtm {
+  background: #e8f0fe;
+  color: #1a56b8;
+}
 .prov--meta {
   background: #e8eefc;
   color: #2b4a9b;
+}
+.prov--msuet {
+  background: #e4f2f1;
+  color: #10646a;
+}
+.prov--tiktok {
+  background: #eceff1;
+  color: #24292f;
+}
+.prov--pinterest {
+  background: #fdeaea;
+  color: #a3151f;
+}
+.prov--snapchat {
+  background: #fff8d6;
+  color: #7a6100;
+}
+.prov--twitter {
+  background: #ecedee;
+  color: #16181a;
 }
 
 /* ---- Decoded params ---- */

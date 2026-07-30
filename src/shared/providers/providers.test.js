@@ -89,6 +89,89 @@ describe('Meta Pixel provider', () => {
   });
 });
 
+describe('Snapchat provider', () => {
+  it('decodes pixel ID and event', () => {
+    const r = decodeRequest('https://tr.snapchat.com/p?pid=abc-123&ev=PURCHASE&e_cur=USD&e_pr=99');
+    expect(r).toMatchObject({ providerKey: 'SNAPCHAT', account: 'abc-123', event: 'PURCHASE' });
+    expect(findParam(r.params, 'e_cur')).toMatchObject({ name: 'Currency', group: 'Ecommerce' });
+  });
+
+  it('matches load-balanced subdomains like tr6', () => {
+    expect(matchProvider('https://tr6.snapchat.com/p?pid=1&ev=PAGE_VIEW').key).toBe('SNAPCHAT');
+  });
+});
+
+describe('X (Twitter) provider', () => {
+  it('pulls the event name out of the JSON events array', () => {
+    const events = encodeURIComponent('[["pageview"]]');
+    const r = decodeRequest(`https://analytics.twitter.com/i/adsct?txn_id=abc12&events=${events}`);
+    expect(r).toMatchObject({ providerKey: 'TWITTER', account: 'abc12', event: 'pageview' });
+  });
+
+  it('still decodes when events is not valid JSON', () => {
+    const r = decodeRequest('https://analytics.twitter.com/i/adsct?txn_id=abc12&events=broken');
+    expect(r.event).toBeNull();
+    expect(findParam(r.params, 'events').value).toBe('broken');
+  });
+
+  it('matches the t.co route', () => {
+    expect(matchProvider('https://t.co/i/adsct?txn_id=1').key).toBe('TWITTER');
+  });
+});
+
+describe('Pinterest provider', () => {
+  it('decodes tag ID, event and bracketed event data', () => {
+    const r = decodeRequest(
+      'https://ct.pinterest.com/v3/?tid=2612345&event=checkout&ed[value]=25&ed[currency]=USD'
+    );
+    expect(r).toMatchObject({ providerKey: 'PINTEREST', account: '2612345', event: 'checkout' });
+    expect(findParam(r.params, 'ed[value]')).toMatchObject({ name: 'Revenue', group: 'Ecommerce' });
+  });
+
+  it('labels undeclared ed[...] keys readably rather than dropping them', () => {
+    const r = decodeRequest('https://ct.pinterest.com/v3/?tid=1&ed[custom_thing]=x');
+    expect(findParam(r.params, 'ed[custom_thing]')).toMatchObject({
+      name: 'Event Data: custom_thing'
+    });
+  });
+});
+
+describe('TikTok provider', () => {
+  it('detects the request and decodes whatever is in the query string', () => {
+    const r = decodeRequest('https://analytics.tiktok.com/api/v2/pixel?sdkid=ABC123&event=CompletePayment');
+    expect(r).toMatchObject({ providerKey: 'TIKTOK', account: 'ABC123', event: 'CompletePayment' });
+  });
+
+  it('matches the track endpoint and other API versions', () => {
+    expect(matchProvider('https://analytics.tiktok.com/api/v1/track?sdkid=X').key).toBe('TIKTOK');
+  });
+});
+
+describe('Microsoft UET provider', () => {
+  it('decodes the UET tag ID and event type', () => {
+    const r = decodeRequest('https://bat.bing.com/action/0?ti=12345678&evt=pageLoad&ec=video');
+    expect(r).toMatchObject({ providerKey: 'MSUET', account: '12345678', event: 'pageLoad' });
+    expect(findParam(r.params, 'ec')).toMatchObject({ name: 'Event Category' });
+  });
+});
+
+describe('Google Tag Manager provider', () => {
+  it('decodes a container load', () => {
+    const r = decodeRequest('https://www.googletagmanager.com/gtm.js?id=GTM-ABCDE&l=dataLayer');
+    expect(r).toMatchObject({ providerKey: 'GTM', account: 'GTM-ABCDE' });
+    expect(r.label).toBe('GTM container load');
+  });
+
+  it('distinguishes the gtag.js loader from the container', () => {
+    const r = decodeRequest('https://www.googletagmanager.com/gtag/js?id=G-ABC123');
+    expect(r.label).toBe('Google tag (gtag.js) load');
+  });
+
+  it('does not swallow GA4 collect requests', () => {
+    expect(matchProvider('https://www.google-analytics.com/g/collect?v=2&tid=G-1').key).toBe('GA4');
+  });
+});
+
 describe('registry', () => {
   it('returns null for unrelated URLs', () => {
     expect(matchProvider('https://example.com/collect?pid=1')).toBeNull();
@@ -107,7 +190,25 @@ describe('registry', () => {
   });
 
   it('does not let one vendor claim another vendor URL', () => {
-    expect(matchProvider('https://px.ads.linkedin.com/collect?pid=1').key).toBe('LINKEDIN');
-    expect(matchProvider('https://www.facebook.com/tr/?id=1').key).toBe('METAPIXEL');
+    const expected = {
+      'https://px.ads.linkedin.com/collect?pid=1': 'LINKEDIN',
+      'https://www.facebook.com/tr/?id=1': 'METAPIXEL',
+      'https://www.google-analytics.com/g/collect?v=2': 'GA4',
+      'https://googleads.g.doubleclick.net/pagead/viewthroughconversion/1/?label=a': 'GOOGLEADS',
+      'https://www.googletagmanager.com/gtm.js?id=GTM-1': 'GTM',
+      'https://bat.bing.com/action/0?ti=1': 'MSUET',
+      'https://analytics.tiktok.com/api/v2/pixel?sdkid=1': 'TIKTOK',
+      'https://ct.pinterest.com/v3/?tid=1': 'PINTEREST',
+      'https://tr.snapchat.com/p?pid=1': 'SNAPCHAT',
+      'https://analytics.twitter.com/i/adsct?txn_id=1': 'TWITTER'
+    };
+    for (const [url, key] of Object.entries(expected)) {
+      expect(matchProvider(url)?.key, url).toBe(key);
+    }
+  });
+
+  it('has a unique key per provider', () => {
+    const keys = PROVIDERS.map((p) => p.key);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });

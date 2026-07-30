@@ -22,7 +22,13 @@ The `webRequest` listeners are filtered to these patterns and nothing else:
 | LinkedIn Insight Tag | `px.ads.linkedin.com/collect*`, `snap.licdn.com/li.lms-analytics/*` |
 | Google Analytics 4 | `*.google-analytics.com/g/collect*`, `analytics.google.com/g/collect*` |
 | Google Ads | `googleads.g.doubleclick.net/pagead/*conversion*`, `www.googleadservices.com/pagead/conversion*` |
+| Google Tag Manager | `*.googletagmanager.com/gtm.js*`, `*.googletagmanager.com/gtag/js*` |
 | Meta Pixel | `*.facebook.com/tr*` |
+| Microsoft Advertising UET | `bat.bing.com/action*` |
+| TikTok Pixel | `analytics.tiktok.com/api/*` |
+| Pinterest Tag | `ct.pinterest.com/*` |
+| Snapchat Pixel | `*.snapchat.com/p*` |
+| X (Twitter) Pixel | `analytics.twitter.com/i/adsct*`, `t.co/i/adsct*` |
 
 General browsing activity is never inspected. Only the LinkedIn Insight Tag is
 *diagnosed*; the other vendors are decoded and displayed as context.

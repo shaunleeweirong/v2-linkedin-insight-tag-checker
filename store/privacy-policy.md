@@ -19,7 +19,13 @@ tag requests the page sends so you can read their parameters. To do this it:
   - LinkedIn — `px.ads.linkedin.com`, `snap.licdn.com`
   - Google Analytics 4 — `google-analytics.com`, `analytics.google.com`
   - Google Ads — `googleads.g.doubleclick.net`, `www.googleadservices.com`
+  - Google Tag Manager — `googletagmanager.com`
   - Meta Pixel — `facebook.com/tr`
+  - Microsoft Advertising UET — `bat.bing.com/action`
+  - TikTok — `analytics.tiktok.com/api`
+  - Pinterest — `ct.pinterest.com`
+  - Snapchat — `snapchat.com/p`
+  - X (Twitter) — `analytics.twitter.com/i/adsct`, `t.co/i/adsct`
 
   No other requests are observed. General browsing activity is never inspected,
   recorded or transmitted.

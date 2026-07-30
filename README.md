@@ -21,9 +21,14 @@ blocker. This one does both — it decodes *and* tells you what's wrong.
 - **Consent gates** — detects common CMPs (OneTrust, Cookiebot, TrustArc,
   Usercentrics, Osano, Didomi, IAB TCF) and, when the tag isn't firing, tells you
   the consent tool may be blocking it until marketing cookies are accepted.
-- **Adjacent vendor tags** — Google Analytics 4, Google Ads and the Meta Pixel are
+- **Adjacent vendor tags** — Google Analytics 4, Google Ads, Google Tag Manager, Meta
+  Pixel, Microsoft Advertising UET, TikTok, Pinterest, Snapchat and X (Twitter) are
   decoded into the same timeline for context. They are **observed, never diagnosed**:
   a Meta pixel firing can't make the LinkedIn verdict look healthy.
+
+  Google Tag Manager earns its slot on diagnostic grounds — most Insight Tags are
+  deployed *through* GTM, so "the tag didn't fire **and** the container never loaded"
+  identifies the root cause in one glance.
 
 ## Nothing gets lost
 
@@ -53,6 +58,13 @@ navigation it triggered — is normal and must never read as blocked. See
 > **Scope:** event-specific conversions (fully observable client-side). Server-side
 > URL-rule conversions are matched inside LinkedIn and their conversion ID is never
 > visible in the browser — out of scope by design.
+
+> **TikTok caveat:** TikTok sends most event data as a JSON **POST body**, and we read
+> request URLs only (`onResponseStarted` exposes no body). So a TikTok request is
+> detected — you see that it fired and whether it completed — but its event fields
+> can't be decoded. Changing that needs an `onBeforeRequest` listener with
+> `requestBody`, which is materially more invasive than reading URLs and would change
+> the privacy-policy claim. Deliberately not done. See `src/shared/providers/tiktok.js`.
 
 ## How it works
 
@@ -144,8 +156,8 @@ test-page/               local test harness (index.html + thankyou.html)
 No data is collected or transmitted. All analysis is local; per-tab results and the
 decoded timeline live in `chrome.storage.session` and are cleared on tab close.
 
-`webRequest` listeners are filtered to a **fixed list of vendor tag endpoints**
-(LinkedIn, GA4, Google Ads, Meta) — general browsing is never observed. The full list
+`webRequest` listeners are filtered to a **fixed list of vendor tag endpoints** —
+general browsing is never observed. The full list
 is in `store/permissions-justification.md`; if you add a provider you must update that
 table, `store/privacy-policy.md` **and** `docs/privacy-policy.html`, which are the
 hosted and store-facing copies of the same promise.
