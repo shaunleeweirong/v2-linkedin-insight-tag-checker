@@ -34,10 +34,14 @@ export function parse(rawUrl) {
   const req = parseInsightRequest(rawUrl);
   if (!req) return null;
 
-  // Labels are written for marketers, not developers: they say what HAPPENED
-  // ("tag script loaded", "page view sent") rather than naming the artefact
-  // ("library", "base tag"). Read down the timeline they form a sequence:
-  // script loaded → page view sent → conversion sent.
+  // Labels favour the words a LinkedIn advertiser already uses.
+  //
+  // "Library" is a programming term with no meaning in LinkedIn's docs, so the
+  // script download is labelled by what happened instead. "Base Insight Tag" is
+  // kept verbatim: it IS LinkedIn's own terminology (base tag vs event-specific
+  // conversions), and calling it a "page view" would understate it — the base
+  // beacon also sets the cookie, builds retargeting audiences and underpins
+  // conversion attribution.
   if (req.kind === 'library') {
     return {
       label: 'Tag script loaded',
@@ -57,9 +61,7 @@ export function parse(rawUrl) {
   }
 
   return {
-    label: req.isConversion
-      ? `Conversion #${req.conversionId}`
-      : 'Page view sent to LinkedIn',
+    label: req.isConversion ? `Conversion #${req.conversionId}` : 'Base Insight Tag',
     account: req.pid,
     event: req.isConversion ? 'conversion' : 'page_view',
     isConversion: req.isConversion,

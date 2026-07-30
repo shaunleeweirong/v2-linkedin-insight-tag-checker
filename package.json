@@ -1,6 +1,6 @@
 {
   "name": "linkedin-insight-tag-checker",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Chrome extension that checks whether the LinkedIn Insight Tag and event-specific conversions are installed and firing on a website, and decodes marketing tag requests.",
   "private": true,
   "type": "module",

@@ -341,7 +341,7 @@ export function deriveWarnings(state) {
     warnings.push({
       level: 'warn',
       code: 'no-lintrk',
-      message: 'Partner ID found but lintrk() is missing — the Insight Tag library may not have loaded.'
+      message: 'Partner ID found but lintrk() is missing — the Insight Tag script may not have loaded.'
     });
   }
 

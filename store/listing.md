@@ -142,7 +142,7 @@ https://<your-github-username>.github.io/<repo-name>/privacy-policy.html
   - For a free personal project, **Non-trader** is the usual pick. Choose **Trader** if this is for your company/agency.
 
 ## 6. Pre-submit checklist
-- [ ] Upload `insight-tag-checker-0.4.1.zip` (built `dist/`, manifest at the zip root).
+- [ ] Upload `insight-tag-checker-0.4.2.zip` (built `dist/`, manifest at the zip root).
 - [ ] **Screenshots regenerated** — the UI gained a side panel, a decoded timeline and
       export buttons in 0.2.0, so the existing 5 shots no longer match the product.
       Add at least one showing the live panel timeline.

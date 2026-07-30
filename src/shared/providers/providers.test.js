@@ -30,7 +30,7 @@ describe('LinkedIn provider', () => {
 
   it('labels the base beacon distinctly from a conversion', () => {
     const r = decodeRequest('https://px.ads.linkedin.com/collect/?pid=123&fmt=js');
-    expect(r.label).toBe('Page view sent to LinkedIn');
+    expect(r.label).toBe('Base Insight Tag');
     expect(r.isConversion).toBe(false);
   });
 
