@@ -34,9 +34,13 @@ export function parse(rawUrl) {
   const req = parseInsightRequest(rawUrl);
   if (!req) return null;
 
+  // Labels are written for marketers, not developers: they say what HAPPENED
+  // ("tag script loaded", "page view sent") rather than naming the artefact
+  // ("library", "base tag"). Read down the timeline they form a sequence:
+  // script loaded → page view sent → conversion sent.
   if (req.kind === 'library') {
     return {
-      label: 'Insight Tag library',
+      label: 'Tag script loaded',
       account: null,
       event: 'library',
       isConversion: false,
@@ -53,7 +57,9 @@ export function parse(rawUrl) {
   }
 
   return {
-    label: req.isConversion ? `Conversion #${req.conversionId}` : 'Base Insight Tag',
+    label: req.isConversion
+      ? `Conversion #${req.conversionId}`
+      : 'Page view sent to LinkedIn',
     account: req.pid,
     event: req.isConversion ? 'conversion' : 'page_view',
     isConversion: req.isConversion,

@@ -173,10 +173,19 @@ function paramTable(params) {
 }
 
 function renderEntry(entry) {
-  const hasParams = entry.params && entry.params.length;
-  const row = el(hasParams ? 'details' : 'div', 'event');
+  // Always lead the detail with the request URL. Without it a row like "Tag script
+  // loaded" gives no way to see WHERE it loaded from — and rows with no query params
+  // (the LinkedIn tag script) weren't expandable at all.
+  const detail = [];
+  if (entry.url) {
+    detail.push({ key: '__url', name: 'Request URL', group: 'General', value: entry.url });
+  }
+  if (entry.params && entry.params.length) detail.push(...entry.params);
 
-  const head = el(hasParams ? 'summary' : 'div', 'event__head');
+  const expandable = detail.length > 0;
+  const row = el(expandable ? 'details' : 'div', 'event');
+
+  const head = el(expandable ? 'summary' : 'div', 'event__head');
   head.appendChild(
     el('span', `prov ${PROVIDER_CLASS[entry.providerKey] || ''}`, entry.providerName || '—')
   );
@@ -186,7 +195,7 @@ function renderEntry(entry) {
   head.appendChild(meta);
   row.appendChild(head);
 
-  if (hasParams) row.appendChild(paramTable(entry.params));
+  if (expandable) row.appendChild(paramTable(detail));
   return row;
 }
 

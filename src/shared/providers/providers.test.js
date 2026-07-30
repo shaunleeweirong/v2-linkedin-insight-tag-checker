@@ -30,13 +30,17 @@ describe('LinkedIn provider', () => {
 
   it('labels the base beacon distinctly from a conversion', () => {
     const r = decodeRequest('https://px.ads.linkedin.com/collect/?pid=123&fmt=js');
-    expect(r.label).toBe('Base Insight Tag');
+    expect(r.label).toBe('Page view sent to LinkedIn');
     expect(r.isConversion).toBe(false);
   });
 
-  it('recognises the library file', () => {
+  // Labels are marketer-facing: they describe what happened, not the artefact.
+  it('recognises the tag script and labels it in plain language', () => {
     const r = decodeRequest('https://snap.licdn.com/li.lms-analytics/insight.min.js');
     expect(r).toMatchObject({ providerKey: 'LINKEDIN', event: 'library' });
+    expect(r.label).toBe('Tag script loaded');
+    // Still carries its URL so the row can be expanded to show snap.licdn.com.
+    expect(r.url).toContain('snap.licdn.com');
   });
 });
 
