@@ -79,9 +79,12 @@ All files live in `store/assets/`. All are the exact required dimensions.
 | Store icon | `store-icon-128.png` | 128×128 |
 | Screenshot 1 | `screenshot-01-firing.png` | 1280×800 |
 | Screenshot 2 | `screenshot-02-conversions.png` | 1280×800 |
-| Screenshot 3 | `screenshot-03-consent.png` | 1280×800 |
-| Screenshot 4 | `screenshot-04-blocked.png` | 1280×800 |
+| Screenshot 3 | `screenshot-03-decoder.png` | 1280×800 |
+| Screenshot 4 | `screenshot-04-truth.png` | 1280×800 |
 | Screenshot 5 | `screenshot-05-local.png` | 1280×800 |
+
+Upload them in this order — they tell a sequence: *does it fire → nothing gets
+lost → everything decoded → it tells the truth → local, and you can send the proof.*
 | Small promo tile (required) | `promo-small-440x280.png` | 440×280 |
 | Marquee promo tile (optional) | `promo-marquee-1400x560.png` | 1400×560 |
 
@@ -143,11 +146,9 @@ https://<your-github-username>.github.io/<repo-name>/privacy-policy.html
 
 ## 6. Pre-submit checklist
 - [ ] Upload `insight-tag-checker-0.4.2.zip` (built `dist/`, manifest at the zip root).
-- [ ] **Screenshots regenerated** — the UI gained a side panel, a decoded timeline and
-      export buttons in 0.2.0, so the existing 5 shots no longer match the product.
-      Add at least one showing the live panel timeline.
+- [ ] All 5 screenshots + small promo tile uploaded (regenerated for 0.4.x — they
+      show the side panel, decoded timeline and export buttons).
 - [ ] Description, summary, category (Developer Tools), language filled in.
-- [ ] All 5 screenshots + small promo tile uploaded.
 - [ ] Single purpose + every permission justification filled in.
 - [ ] Data-usage: no categories checked, all 3 certifications checked.
 - [ ] Privacy policy hosted and URL added.

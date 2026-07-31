@@ -73,19 +73,61 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans
 
 .pw__foot{padding:11px 15px;border-top:1px solid var(--line);background:#f7f9fb;font-size:11px;color:var(--muted)}
 
+/* ---- Side panel: timeline ---- */
+.blk__hint{font-size:11.5px;line-height:1.4;color:var(--muted);margin:-4px 0 10px}
+
+.pagemark{display:flex;align-items:center;gap:8px;margin:4px 0 9px;padding-top:9px;border-top:1px dashed var(--line)}
+.pagemark .pm__badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:3px 7px;border-radius:6px;background:#eef1f4;color:var(--muted);flex:none}
+.pagemark .pm__url{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.ev{border:1px solid var(--line);border-radius:10px;margin-bottom:7px;background:#fff}
+.ev__head{display:flex;align-items:center;gap:9px;padding:9px 11px}
+.ev--open .ev__head{border-bottom:1px solid var(--line)}
+.ev__label{font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev__meta{margin-left:auto;flex:none}
+
+.prov{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;flex:none;white-space:nowrap}
+.prov--li{background:#e9f0fb;color:#084b8f}
+.prov--ga4{background:#e6f4ea;color:#1e6b3a}
+.prov--meta{background:#e8eefc;color:#2b4a9b}
+.prov--gtm{background:#e8f0fe;color:#1a56b8}
+.prov--hs{background:#ffefe6;color:#a1441a}
+.prov--uet{background:#e4f2f1;color:#10646a}
+
+.params{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+.params td{padding:5px 11px;vertical-align:top;border-bottom:1px solid #f4f6f8;word-break:break-word}
+.params tr:last-child td{border-bottom:none}
+.params .pn{width:44%;color:var(--muted);font-weight:600}
+.params .pv{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ---- Action buttons ---- */
+.acts{display:flex;gap:8px;padding:2px 15px 15px}
+.btn{flex:1;padding:9px 10px;font-family:inherit;font-size:12.5px;font-weight:600;
+  border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);text-align:center}
+.btn--pri{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ---- Vendor strip (logo-free wordmark row) ---- */
+.vendors{margin-top:34px;display:flex;flex-wrap:wrap;gap:9px;max-width:600px}
+.vendors span{font-size:14px;font-weight:600;color:var(--ink2);background:#fff;border:1px solid var(--line);
+  padding:7px 13px;border-radius:999px}
+
     .stage{width:1280px;height:800px}</style></head><body><div class="stage">
       <div style="position:absolute;top:58px;left:82px"><div class="brand"><div class="brand__mark">in</div><div class="brand__name">Insight Tag Checker</div></div></div>
-      <div style="position:absolute;inset:0;display:flex;align-items:center;padding:0 82px;gap:56px">
-        <div style="flex:1 1 54%">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;padding:80px 82px 0;gap:56px">
+        <div style="flex:1 1 52%">
           <h1 class="headline">Is your LinkedIn Insight&nbsp;Tag <span class="accent">actually firing?</span></h1>
           <div class="bullets"><div class="bullet"><span class="bullet__check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span><span>Confirms the tag really fired — not just installed</span></div><div class="bullet"><span class="bullet__check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span><span>Shows every Partner ID on the page</span></div><div class="bullet"><span class="bullet__check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span><span>One click, works on any website</span></div></div>
+          
         </div>
-        <div style="flex:1 1 46%;display:flex;justify-content:flex-end"><div class="device">
+        <div style="flex:1 1 48%;display:flex;justify-content:flex-end"><div class="device">
     <div class="device__bar"><div class="b-left"><span class="dot">in</span>Insight Tag Checker</div><div class="b-right"><span>&#128204;</span><span>&times;</span></div></div>
     <div class="pw">
       <div class="pw__top"><div class="mk">in</div><div><h4>Insight Tag Checker</h4><p>www.acme.com</p></div></div>
       <div class="hero hero--ok"><div class="hdot"></div><div><h3>Insight Tag is firing</h3><p>The tag loaded and reached LinkedIn.</p></div></div><div class="blk"><div class="blk__t">Partner ID</div>
-        <span class="chip">PID 506388</span></div><div class="pw__foot">Reads network activity &amp; page data locally. Nothing leaves your browser.</div>
+        <span class="chip">PID 506388</span></div><div class="blk"><div class="blk__t">Event conversions<span>· 1/1 fired</span></div>
+        <div class="conv"><span class="cdot"></span><span class="cid">#8931204</span>
+              <span class="cmeta"><span class="tag tag--lintrk">lintrk</span><span class="tag tag--fired">fired</span></span></div></div><div class="pw__foot">Reads network activity &amp; page data locally. Nothing leaves your browser.</div>
     </div>
   </div></div>
       </div>
