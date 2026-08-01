@@ -132,6 +132,50 @@ function renderWarnings(els, state) {
 
 // --- Timeline -------------------------------------------------------------
 
+// The side panel re-polls once a second, and the timeline used to be rebuilt from
+// scratch on every tick — which slammed shut whatever detail row the user had just
+// opened, about a second after they opened it. Two things keep a row open now: the
+// rebuild is skipped while the timeline is unchanged, and the expanded row is
+// remembered by id so a genuine rebuild can restore it.
+let openEntryId = null;
+let timelineSig = null;
+let timelineRoot = null;
+
+/**
+ * Forget the expanded row and the render cache.
+ *
+ * The side panel follows the active tab, so on a tab switch the cached signature
+ * describes a timeline that is no longer on screen.
+ */
+export function resetTimelineView() {
+  openEntryId = null;
+  timelineSig = null;
+  timelineRoot = null;
+}
+
+/** Stable per-entry key. Falls back for entries stored before ids existed. */
+function entryKey(entry, index) {
+  return entry.id || `${entry.kind}:${entry.seq ?? 0}:${entry.ts ?? 0}:${index}`;
+}
+
+// One detail panel at a time: opening a row collapses the previously open one, and
+// clicking the open row again collapses it — the row stays put until then.
+function onEntryToggle(ev) {
+  const row = ev.currentTarget;
+  const key = row.dataset.entryId;
+
+  if (!row.open) {
+    if (openEntryId === key) openEntryId = null;
+    return;
+  }
+
+  openEntryId = key;
+  if (!timelineRoot) return;
+  for (const other of timelineRoot.querySelectorAll('details.event[open]')) {
+    if (other !== row) other.open = false;
+  }
+}
+
 /** Split the flat timeline into per-page groups, in chronological order. */
 export function groupByPage(timeline = []) {
   const groups = [];
@@ -172,7 +216,7 @@ function paramTable(params) {
   return table;
 }
 
-function renderEntry(entry) {
+function renderEntry(entry, key) {
   // Always lead the detail with the request URL. Without it a row like "Tag script
   // loaded" gives no way to see WHERE it loaded from — and rows with no query params
   // (the LinkedIn tag script) weren't expandable at all.
@@ -184,6 +228,7 @@ function renderEntry(entry) {
 
   const expandable = detail.length > 0;
   const row = el(expandable ? 'details' : 'div', 'event');
+  row.dataset.entryId = key;
 
   const head = el(expandable ? 'summary' : 'div', 'event__head');
   head.appendChild(
@@ -195,16 +240,31 @@ function renderEntry(entry) {
   head.appendChild(meta);
   row.appendChild(head);
 
-  if (expandable) row.appendChild(paramTable(detail));
+  if (expandable) {
+    if (key === openEntryId) row.open = true;
+    row.addEventListener('toggle', onEntryToggle);
+    row.appendChild(paramTable(detail));
+  }
   return row;
 }
 
 function renderTimeline(els, state) {
-  const groups = groupByPage(state.timeline);
-  els.timeline.replaceChildren();
-
-  const total = (state.timeline || []).filter((e) => e.kind !== 'page').length;
+  const timeline = state.timeline || [];
+  const total = timeline.filter((e) => e.kind !== 'page').length;
   if (els.timelineCount) els.timelineCount.textContent = total ? ` · ${total}` : '';
+
+  // The timeline is append-only, so its length plus its newest entry describe it
+  // completely. Bailing out here is what stops a poll tick from rebuilding — and
+  // collapsing — the row the user is reading.
+  const last = timeline[timeline.length - 1];
+  const sig = `${state.url || ''}|${timeline.length}|${last ? entryKey(last, timeline.length - 1) : ''}`;
+  if (els.timeline === timelineRoot && sig === timelineSig) return;
+  timelineRoot = els.timeline;
+  timelineSig = sig;
+
+  const keys = new Map(timeline.map((entry, i) => [entry, entryKey(entry, i)]));
+  const groups = groupByPage(timeline);
+  els.timeline.replaceChildren();
 
   if (!total) {
     els.timeline.appendChild(
@@ -230,7 +290,7 @@ function renderTimeline(els, state) {
     }
 
     for (const entry of [...group.entries].reverse()) {
-      section.appendChild(renderEntry(entry));
+      section.appendChild(renderEntry(entry, keys.get(entry)));
     }
     els.timeline.appendChild(section);
   }

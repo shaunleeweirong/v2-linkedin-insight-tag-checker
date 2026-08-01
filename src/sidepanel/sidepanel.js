@@ -4,7 +4,7 @@
 // or not this is open, so docking the panel is optional rather than required.
 // It follows the active tab, so clicking through a site keeps the view in sync.
 
-import { render } from '../ui/render.js';
+import { render, resetTimelineView } from '../ui/render.js';
 import { fetchState, hostFromUrl, copyReport, downloadCsv, flash } from '../ui/actions.js';
 
 const els = {
@@ -33,7 +33,13 @@ async function tick() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab) return;
 
-  currentTabId = tab.id;
+  if (tab.id !== currentTabId) {
+    // Following a different tab means a different timeline — drop the expanded row
+    // and the render cache so the panel redraws from scratch.
+    currentTabId = tab.id;
+    resetTimelineView();
+  }
+
   const host = hostFromUrl(tab.url);
   if (host !== currentHost) {
     currentHost = host;
@@ -63,6 +69,7 @@ els.exportCsv.addEventListener('click', () => {
 
 els.clear.addEventListener('click', async () => {
   if (currentTabId == null) return;
+  resetTimelineView();
   try {
     await chrome.runtime.sendMessage({ type: 'clear', tabId: currentTabId });
   } catch {

@@ -145,6 +145,25 @@ describe('navigation resets the diagnostic but keeps the timeline', () => {
     expect(s.pageSeq).toBe(2);
   });
 
+  // The side panel keeps an expanded detail row open across its 1s re-render by
+  // matching entries on `id`, so ids must be unique and must not restart on
+  // navigation — position can't stand in for identity once the cap starts dropping
+  // entries off the front.
+  it('gives every timeline entry a unique id that survives navigation', () => {
+    const s = run([
+      { type: 'lintrk', conversionId: 111 },
+      requestEvent('https://px.ads.linkedin.com/collect/?pid=1&fmt=gif', 'completed', {
+        statusCode: 200
+      }),
+      { type: 'navigation', url: 'https://example.com/next' },
+      { type: 'lintrk', conversionId: 222 }
+    ]);
+
+    const ids = s.timeline.map((e) => e.id);
+    expect(ids.every(Boolean)).toBe(true);
+    expect(new Set(ids).size).toBe(s.timeline.length);
+  });
+
   it('caps the timeline, dropping the oldest entries', () => {
     const events = Array.from({ length: TIMELINE_CAP + 25 }, (_, i) => ({
       type: 'navigation',

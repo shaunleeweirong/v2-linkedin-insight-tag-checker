@@ -29,6 +29,7 @@ export function initialTabState(url = null) {
     // --- Session-scoped: these SURVIVE navigation (see the navigation branch) ---
     timeline: [], // append-only decoded log, page markers included
     pageSeq: 0, // increments once per committed navigation
+    entrySeq: 0, // increments per timeline entry — gives each one a stable id
 
     updatedAt: 0
   };
@@ -38,6 +39,20 @@ export function initialTabState(url = null) {
 function appendTimeline(timeline, entry) {
   const next = [...(timeline || []), entry];
   return next.length > TIMELINE_CAP ? next.slice(next.length - TIMELINE_CAP) : next;
+}
+
+/**
+ * Append with a stable `id`.
+ *
+ * The UI re-reads state on a timer, so it needs to recognise an entry it has already
+ * drawn — otherwise an expanded row can't be kept expanded across a re-render.
+ * Position can't serve as that identity: the cap drops entries off the front.
+ * Mutates `s.entrySeq` / `s.timeline` on the caller's (already copied) state.
+ */
+function pushTimeline(s, entry) {
+  const seq = (s.entrySeq || 0) + 1;
+  s.entrySeq = seq;
+  s.timeline = appendTimeline(s.timeline, { id: `e${seq}`, ...entry });
 }
 
 /**
@@ -59,7 +74,9 @@ export function reduce(state, event, now = 0) {
     const prev = state || initialTabState();
     const fresh = initialTabState(event.url);
     fresh.pageSeq = (prev.pageSeq || 0) + 1;
-    fresh.timeline = appendTimeline(prev.timeline, {
+    fresh.entrySeq = prev.entrySeq || 0;
+    fresh.timeline = prev.timeline;
+    pushTimeline(fresh, {
       kind: 'page',
       seq: fresh.pageSeq,
       url: event.url || null,
@@ -90,7 +107,7 @@ export function reduce(state, event, now = 0) {
 
       // Every observed vendor request lands on the timeline — LinkedIn or not.
       if (decoded) {
-        s.timeline = appendTimeline(s.timeline, {
+        pushTimeline(s, {
           kind: 'request',
           seq: s.pageSeq || 0,
           ts: now,
@@ -159,7 +176,7 @@ export function reduce(state, event, now = 0) {
       });
       // Log the intent too: if a click navigates before its beacon is observed, the
       // lintrk() call may be the only surviving evidence the conversion happened.
-      s.timeline = appendTimeline(s.timeline, {
+      pushTimeline(s, {
         kind: 'lintrk',
         seq: s.pageSeq || 0,
         ts: now,
