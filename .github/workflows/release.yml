@@ -1,0 +1,118 @@
+name: Release
+
+# Publishes a GitHub Release with a ready-to-install build of the extension
+# attached, so people can download it without a toolchain.
+#
+#   Tag route:      git tag v0.4.2 && git push origin v0.4.2
+#   Manual route:   Actions → Release → Run workflow → enter the tag
+#
+# The tag must match the version in manifest.json / package.json; the job fails
+# loudly rather than shipping a mislabelled zip.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release, e.g. v0.4.2 (created at the current commit if it does not exist)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Resolve and verify version
+        id: version
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
+          MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          if [ "$MANIFEST_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::manifest.json ($MANIFEST_VERSION) and package.json ($PACKAGE_VERSION) disagree on the version."
+            exit 1
+          fi
+          if [ "$TAG" != "v$MANIFEST_VERSION" ]; then
+            echo "::error::Tag $TAG does not match manifest version $MANIFEST_VERSION — expected v$MANIFEST_VERSION."
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$MANIFEST_VERSION" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
+
+      - run: npm run zip
+
+      - name: Write release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cat > release-notes.md <<EOF
+          **Insight Tag Checker for LinkedIn** — checks whether your LinkedIn Insight Tag and
+          event conversions are actually *firing* on a site, and decodes every marketing tag
+          request into plain language. Everything runs locally; nothing is collected or sent.
+
+          ## Install (2 minutes, no build tools)
+
+          1. Download **\`insight-tag-checker-$VERSION.zip\`** from the Assets below.
+          2. **Unzip it** — you should end up with a folder containing \`manifest.json\`.
+          3. Open \`chrome://extensions\` (Edge: \`edge://extensions\`).
+          4. Turn on **Developer mode** — top-right toggle.
+          5. Click **Load unpacked** and select the unzipped folder.
+          6. Pin the icon, open any site, reload the page, then click the icon.
+
+          > Chrome cannot install a \`.zip\` by drag-and-drop — the unzip + **Load unpacked**
+          > steps above are the supported way to run an unpacked extension. Keep the folder
+          > where it is; deleting it uninstalls the extension.
+
+          Already-open tabs are not instrumented until you reload them.
+
+          ## What you get
+
+          - **Base Insight Tag** — verified by the beacon reaching LinkedIn, not just by the snippet being in the HTML.
+          - **Partner IDs** — every PID on the page, with duplicate/multiple-tag warnings.
+          - **Event conversions** — captured live with their conversion ID, including ones that fire and immediately navigate away.
+          - **Consent gates** — flags OneTrust, Cookiebot, TrustArc, Usercentrics, Osano, Didomi and IAB TCF when they are holding the tag back.
+          - **16 other vendor tags** decoded for context — observed, never allowed to influence the LinkedIn verdict.
+          - **Copy report** and **Export CSV** for sharing findings.
+
+          Verdicts distinguish *Firing*, *Present but not firing*, *Blocked by your own ad blocker*, and *Not found*, so an empty result is never ambiguous.
+
+          ## Verify the download
+
+          \`\`\`
+          sha256  $(sha256sum "insight-tag-checker-$VERSION.zip" | cut -d' ' -f1)
+          \`\`\`
+
+          Built from this tag by GitHub Actions with \`npm ci && npm test && npm run build && npm run zip\`.
+          The archive is reproducible: the same commit always produces the same bytes.
+          EOF
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "$TAG" \
+            --title "Insight Tag Checker $TAG" \
+            --notes-file release-notes.md \
+            --target "$GITHUB_SHA" \
+            "insight-tag-checker-$VERSION.zip#Chrome extension (unzip, then Load unpacked)"

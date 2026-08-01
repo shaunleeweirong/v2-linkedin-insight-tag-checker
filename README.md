@@ -9,6 +9,21 @@ Most tag debuggers are decoders with no diagnosis: when nothing fires you get an
 list, which looks identical whether the tag is missing, broken, or eaten by your own ad
 blocker. This one does both — it decodes *and* tells you what's wrong.
 
+## Install
+
+Grab the latest build from **[Releases](../../releases/latest)** — no toolchain needed:
+
+1. Download `insight-tag-checker-<version>.zip` from the release Assets.
+2. Unzip it (you should see `manifest.json` inside the folder).
+3. Open `chrome://extensions` → turn on **Developer mode** → **Load unpacked** → select the folder.
+4. Pin the icon, open a site, **reload the page**, then click the icon.
+
+Chrome can't install a `.zip` directly, so the unzip + *Load unpacked* step is required.
+Keep the folder where it is — deleting it uninstalls the extension. Tabs already open
+when you load the extension aren't instrumented until you reload them.
+
+Building it yourself instead? See [Develop](#develop).
+
 ## What it detects
 
 - **Base Insight Tag** — installed *and actually firing* (not just present in the
