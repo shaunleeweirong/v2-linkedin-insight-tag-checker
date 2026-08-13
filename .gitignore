@@ -5,3 +5,6 @@ dist/
 .vite/
 .playwright-mcp/
 *.zip
+
+# Raw sweep captures (~2MB each) — regenerate with diagnostics/sweep.mjs
+diagnostics/results*.json

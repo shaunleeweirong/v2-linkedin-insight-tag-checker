@@ -1,0 +1,50 @@
+SITE                              lib col wa  DOM pids    beacon pids   EXT STATUS  EXT PIDs    FLAGS
+------------------------------------------------------------------------------------------------------------------------
+endowus.com                       2   3   1   —           843739        firing      843739      pid-only-from-beacon
+www.mandai.com/en.html            2   1   1   —           9171308       firing      9171308     pid-only-from-beacon
+www.dbs.com.sg/index/default.pag    — no LinkedIn Insight Tag on this page —
+www.ocbc.com/group                2   1   0   5223228,52232282780668,5223228firing      5223228,2780668
+www.singaporeair.com              6   0   0   640979,3616420—             not-found   «none»      consent-clicked
+www.grab.com/sg                     — no LinkedIn Insight Tag on this page —
+www.circles.life/sg                 — no LinkedIn Insight Tag on this page —
+www.ninjavan.co/en-sg             2   2   1   2800548,82622128262212,2800548,8262212firing      2800548,8262212
+www.hubspot.com                   2   0   2   4629393,6444864448,4629393 firing      «none»      *** FIRING-BUT-NO-PID *** WA-ONLY(pid in POST body) consent-clicked
+www.salesforce.com                2   2   1   105628,15939,54315939,105628,543,15939,105628,543firing      15939,105628,543consent-clicked
+www.zendesk.com                   2   1   1   2780        2780          firing      2780        
+www.atlassian.com                 2   1   1   44935       44935         firing      44935       consent-clicked
+www.datadoghq.com                 2   1   1   —           74631         firing      74631       pid-only-from-beacon
+www.snowflake.com/en              2   1   1   —           73619         firing      73619       pid-only-from-beacon consent-clicked
+www.mongodb.com                   4   2   2   —           33677         firing      33677       pid-only-from-beacon
+www.twilio.com/en-us              2   2   1   6807113,19502,1950219502,6807113,19502,6807113firing      6807113,19502
+www.okta.com                      2   1   1   —           15020         firing      15020       pid-only-from-beacon consent-clicked
+www.docusign.com                  2   1   2   —           46370         firing      46370       pid-only-from-beacon consent-clicked
+www.workday.com                     — no LinkedIn Insight Tag on this page —
+www.servicenow.com                2   1   2   —           15678         firing      15678       pid-only-from-beacon consent-clicked
+www.cloudflare.com                  — no LinkedIn Insight Tag on this page —
+about.gitlab.com                  2   1   1   30694,30694 30694         firing      30694       
+asana.com                         2   4   1   384674      384674        firing      384674      
+monday.com                        2   2   1   5004601,3621645004601,362164,5004601,362164firing      5004601,362164
+www.notion.com                    2   1   1   —           2368700       firing      2368700     pid-only-from-beacon
+www.figma.com                     4   2   2   —           1644642       firing      1644642     pid-only-from-beacon consent-clicked
+segment.com                       2   2   1   6807113,19502,1950219502,6807113,19502,6807113NO-STATE    «none»      
+www.semrush.com                   2   1   1   —           387538        firing      387538      pid-only-from-beacon
+ahrefs.com                        2   1   1   83228,83228 83228         firing      83228       consent-clicked
+www.mckinsey.com                  2   2   2   7160972,2785387160972,278538,7160972,278538firing      7160972,278538consent-clicked
+www.zoominfo.com                    — no LinkedIn Insight Tag on this page —
+www.6sense.com                    2   1   1   —           886571        firing      886571      pid-only-from-beacon
+
+=== SUMMARY ===
+sites visited              : 32
+with a LinkedIn Insight Tag: 26
+  FIRING but NO PARTNER ID : 1 [ 'www.hubspot.com' ]
+  using /wa/ POST endpoint  : 24
+  /wa/ with NO /collect     : 1 [ 'www.hubspot.com' ]
+  DOM partner-id globals    : 14 / 26 (rest depend 100% on the beacon)
+  PID only obtainable from beacon: 12
+
+=== LinkedIn tag scriptVersion  vs  legacy /collect beacon ===
+  scriptVersion 308        sites=7   sends /collect: 7   sends ONLY /wa/: 0
+  scriptVersion 1000010    sites=17  sends /collect: 16   sends ONLY /wa/: 1
+
+  extension can read a PID from /collect query params : YES
+  extension can read a PID from /wa/ POST body        : NO (endpoint unmatched + body never parsed)

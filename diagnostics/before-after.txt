@@ -1,0 +1,31 @@
+SITE                          BEFORE                    AFTER                     CHANGE
+--------------------------------------------------------------------------------------------------------
+endowus.com/                  firing/843739             firing/843739             
+www.mandai.com/en.html        firing/9171308            firing/9171308            
+www.ocbc.com/group/           firing/5223228,2780668    firing/5223228,2780668    
+www.singaporeair.com/         not-found/—               not-found/—               
+www.ninjavan.co/en-sg         firing/2800548,8262212    firing/2800548,8262212    
+www.hubspot.com/              firing/—                  firing/4629393,64448      *** FIXED: firing-without-PID resolved ***
+www.salesforce.com/           firing/15939,105628,543   firing/15939,105628,543   
+www.zendesk.com/              firing/2780               firing/2780               
+www.atlassian.com/            firing/44935              firing/44935              
+www.datadoghq.com/            firing/74631              firing/74631              
+www.snowflake.com/en/         firing/73619              firing/73619              
+www.mongodb.com/              firing/33677              firing/33677              
+www.twilio.com/en-us          firing/6807113,19502      firing/6807113,19502      
+www.okta.com/                 firing/15020              firing/15020              
+www.docusign.com/             firing/46370              firing/46370              
+www.workday.com/              not-found/—               firing/7147               gained partner IDs
+www.servicenow.com/           firing/15678              firing/15678              
+about.gitlab.com/             firing/30694              firing/30694              
+asana.com/                    firing/384674             firing/384674             
+monday.com/                   firing/5004601,362164     firing/5004601,362164     
+www.notion.com/               firing/2368700            firing/2368700            
+www.figma.com/                firing/1644642            firing/1644642            
+segment.com/                  NO-STATE/—                NO-STATE/—                
+www.semrush.com/              firing/387538             firing/387538             
+ahrefs.com/                   firing/83228              firing/83228              
+www.mckinsey.com/             firing/7160972,278538     firing/7160972,278538     
+www.6sense.com/               firing/886571             firing/886571             
+
+improved: 2   unchanged: 25   needs attention: 0
