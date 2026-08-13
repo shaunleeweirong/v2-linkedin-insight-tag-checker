@@ -8,7 +8,8 @@ export const LI_COLLECT_HOST = 'px.ads.linkedin.com';
 
 // URL match patterns handed to chrome.webRequest listeners. Scoped to exactly
 // what parseInsightRequest() understands: the /collect beacon (base page-load and
-// conversions) and the Insight Tag library file.
+// conversions), the /wa/ signal endpoint, the attribution ping, and the Insight
+// Tag library file.
 //
 // NOTE: narrowing the listener filter here is fine, but the manifest's
 // host_permissions MUST stay "<all_urls>". Chrome only dispatches webRequest
@@ -17,6 +18,8 @@ export const LI_COLLECT_HOST = 'px.ads.linkedin.com';
 // are silently dropped on every site the user hasn't granted via an icon click.
 export const REQUEST_FILTERS = [
   '*://px.ads.linkedin.com/collect*',
+  '*://px.ads.linkedin.com/wa/*',
+  '*://px.ads.linkedin.com/attribution_trigger*',
   '*://snap.licdn.com/li.lms-analytics/*'
 ];
 
@@ -25,7 +28,7 @@ export const REQUEST_FILTERS = [
  *
  * @param {string} rawUrl
  * @returns {null | {
- *   kind: 'library' | 'collect',
+ *   kind: 'library' | 'collect' | 'wa' | 'attribution',
  *   pid: string | null,
  *   conversionId: string | null,
  *   fmt: string | null,
@@ -48,6 +51,34 @@ export function parseInsightRequest(rawUrl) {
     return {
       kind: 'library',
       pid: null,
+      conversionId: null,
+      fmt: null,
+      isConversion: false,
+      url: rawUrl
+    };
+  }
+
+  // The current tag (scriptVersion 1000010+) POSTs its page-visit signal here
+  // instead of GET /collect. The partner IDs are in the gzipped request BODY, not
+  // the URL — see wa-payload.js. Sites that have fully migrated never send
+  // /collect at all, so without this the only PID source is the page's globals.
+  if (host === LI_COLLECT_HOST && (url.pathname === '/wa' || url.pathname.startsWith('/wa/'))) {
+    return {
+      kind: 'wa',
+      pid: null, // filled in by the service worker once the body is decoded
+      conversionId: null,
+      fmt: url.searchParams.get('fmt') || null,
+      isConversion: false,
+      url: rawUrl
+    };
+  }
+
+  // Attribution ping. Carries the pid in the query string, so it is a cheap extra
+  // PID source — but it is not the page-visit signal, so it never proves firing.
+  if (host === LI_COLLECT_HOST && url.pathname.startsWith('/attribution_trigger')) {
+    return {
+      kind: 'attribution',
+      pid: url.searchParams.get('pid') || null,
       conversionId: null,
       fmt: null,
       isConversion: false,

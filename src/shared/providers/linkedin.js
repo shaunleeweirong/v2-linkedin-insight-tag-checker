@@ -60,6 +60,19 @@ export function parse(rawUrl) {
     searchParams = new URLSearchParams();
   }
 
+  // The attribution ping is a separate call from the page-visit signal — labelling
+  // it "Base Insight Tag" would show a marketer two page views for one page load.
+  if (req.kind === 'attribution') {
+    return {
+      label: 'Attribution ping',
+      account: req.pid,
+      event: 'attribution',
+      isConversion: false,
+      conversionId: null,
+      params: decodeParams(searchParams, KEYS)
+    };
+  }
+
   return {
     label: req.isConversion ? `Conversion #${req.conversionId}` : 'Base Insight Tag',
     account: req.pid,

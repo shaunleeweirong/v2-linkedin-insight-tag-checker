@@ -34,6 +34,19 @@ describe('LinkedIn provider', () => {
     expect(r.isConversion).toBe(false);
   });
 
+  it('labels the /wa/ page-visit signal as the base tag', () => {
+    const r = decodeRequest('https://px.ads.linkedin.com/wa/?medium=fetch&fmt=g');
+    expect(r).toMatchObject({ providerKey: 'LINKEDIN', tier: 'diagnosed', isConversion: false });
+    expect(r.label).toBe('Base Insight Tag');
+  });
+
+  it('labels the attribution ping as its own thing, not a page view', () => {
+    const r = decodeRequest('https://px.ads.linkedin.com/attribution_trigger?pid=843739');
+    expect(r).toMatchObject({ providerKey: 'LINKEDIN', isConversion: false });
+    expect(r.label).toBe('Attribution ping');
+    expect(r.account).toBe('843739');
+  });
+
   // Labels are marketer-facing: they describe what happened, not the artefact.
   it('recognises the tag script and labels it in plain language', () => {
     const r = decodeRequest('https://snap.licdn.com/li.lms-analytics/insight.min.js');

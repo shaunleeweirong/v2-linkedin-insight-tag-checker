@@ -136,7 +136,22 @@ export function reduce(state, event, now = 0) {
         return s;
       }
 
-      // kind === 'collect'
+      // Neither the attribution ping nor a /wa/ CLICK is the page-visit signal.
+      // Both carry a pid, so both contribute an ID — without ever moving the
+      // verdict to "firing" on their own.
+      if (req.kind === 'attribution' || req.kind === 'wa-click') {
+        if (req.pid) {
+          const prev = s.baseBeacon || {};
+          s.baseBeacon = { ...prev, pid: prev.pid || req.pid, fired: !!prev.fired, ts: now };
+        }
+        return s;
+      }
+
+      // Anything we don't recognise is dropped rather than being folded into the
+      // base beacon — a mystery request must never fabricate a verdict or a PID.
+      if (req.kind !== 'collect' && req.kind !== 'wa') return s;
+
+      // kind === 'collect' | 'wa'
       if (req.isConversion) {
         s.conversions = upsertConversion(s.conversions, {
           conversionId: req.conversionId,
@@ -247,13 +262,25 @@ export function isTagPresent(state) {
   );
 }
 
-/** Did any Insight Tag beacon complete without error? */
+/**
+ * Did the tag actually SEND something to LinkedIn?
+ *
+ * Deliberately excludes the library download. Fetching insight.min.js proves the
+ * script arrived, not that it reported anything — a tag whose partner ID is
+ * missing or whose consent gate never opens still downloads the script happily.
+ * Counting it here is what produced a green "firing" tick next to an empty
+ * Partner ID; see deriveBaseStatus's 'loaded' branch for that case.
+ */
 function anyBeaconFired(state) {
   return !!(
     (state.baseBeacon && state.baseBeacon.fired) ||
-    (state.library && state.library.fired) ||
     state.conversions.some((c) => c.fired)
   );
+}
+
+/** Did the Insight Tag script itself download successfully? */
+function libraryLoaded(state) {
+  return !!(state.library && state.library.fired);
 }
 
 /** Did any Insight Tag beacon error out (blocked / network failure)? */
@@ -267,16 +294,19 @@ function anyBeaconErrored(state) {
 }
 
 /**
- * The core trichotomy (+ not-found):
- *   'firing'    — a beacon completed → the tag is live
- *   'blocked'   — beacons were attempted but errored → likely the auditor's own
+ * The verdict, most-conclusive evidence first:
+ *   'firing'    — a page-visit or conversion signal reached LinkedIn → tag is live
+ *   'blocked'   — signals were attempted but errored → likely the auditor's own
  *                 ad/consent blocker, NOT a broken site
- *   'present'   — tag is in the DOM but nothing fired → genuine install problem
+ *   'loaded'    — the script downloaded but sent nothing. Usually a consent gate
+ *                 that never opened, or a snippet with no/incorrect partner ID.
+ *   'present'   — tag is in the DOM but nothing loaded or fired
  *   'not-found' — no trace of the Insight Tag at all
  */
 export function deriveBaseStatus(state) {
   if (anyBeaconFired(state)) return 'firing';
   if (anyBeaconErrored(state)) return 'blocked';
+  if (libraryLoaded(state)) return 'loaded';
   if (isTagPresent(state)) return 'present';
   return 'not-found';
 }
@@ -343,6 +373,14 @@ export function deriveWarnings(state) {
       code: 'beacons-blocked',
       message:
         'LinkedIn requests are being blocked in your browser (ad blocker or consent tool). Disable it on this page to verify the tag.'
+    });
+  }
+  if (status === 'loaded') {
+    warnings.push({
+      level: 'warn',
+      code: 'loaded-no-signal',
+      message:
+        'The Insight Tag script downloaded but never sent a page-visit signal to LinkedIn. The usual causes are a consent gate that was not accepted, or a snippet with a missing or incorrect Partner ID.'
     });
   }
   if (status === 'present') {

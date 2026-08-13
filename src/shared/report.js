@@ -8,7 +8,8 @@
 import { deriveBaseStatus, deriveWarnings, getPartnerIds } from './state.js';
 
 const STATUS_LABEL = {
-  firing: 'FIRING — the tag loaded and reached LinkedIn',
+  firing: 'FIRING — the tag sent a page-visit signal to LinkedIn',
+  loaded: 'SCRIPT LOADED, NOTHING SENT — the tag script downloaded but sent no signal',
   present: 'PRESENT, NOT FIRING — the tag is on the page but nothing fired',
   blocked: 'BLOCKED — requests were blocked in this browser (ad or consent blocker)',
   'not-found': 'NOT FOUND — no LinkedIn Insight Tag detected'

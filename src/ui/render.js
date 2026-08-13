@@ -10,7 +10,12 @@ export const STATUS = {
   firing: {
     cls: 'hero--firing',
     title: 'Insight Tag is firing',
-    desc: 'The tag loaded and reached LinkedIn.'
+    desc: 'The tag sent a page-visit signal to LinkedIn.'
+  },
+  loaded: {
+    cls: 'hero--present',
+    title: 'Script loaded, nothing sent',
+    desc: 'The Insight Tag script downloaded but never sent a page-visit signal. Usually a consent gate that was not accepted, or a missing/incorrect Partner ID.'
   },
   present: {
     cls: 'hero--present',

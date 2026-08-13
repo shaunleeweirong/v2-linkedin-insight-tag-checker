@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseInsightRequest } from './beacon-parse.js';
+import { parseInsightRequest, REQUEST_FILTERS } from './beacon-parse.js';
 
 describe('parseInsightRequest', () => {
   it('recognises the Insight Tag library file', () => {
@@ -39,5 +39,42 @@ describe('parseInsightRequest', () => {
   it('does not treat an empty conversionId as a conversion', () => {
     const r = parseInsightRequest('https://px.ads.linkedin.com/collect/?pid=1&conversionId=');
     expect(r.isConversion).toBe(false);
+  });
+});
+
+// The current Insight Tag (scriptVersion 1000010) POSTs its page-visit signal to
+// /wa/ with a gzipped body instead of the legacy GET /collect?pid=… — on sites
+// that have fully migrated, /collect never fires at all.
+describe('the /wa/ signal endpoint', () => {
+  it('recognises the /wa/ endpoint as a LinkedIn request', () => {
+    const r = parseInsightRequest('https://px.ads.linkedin.com/wa/?medium=fetch&fmt=g');
+    expect(r).toMatchObject({ kind: 'wa', isConversion: false });
+  });
+
+  it('carries no pid from the URL — /wa/ keeps it in the request body', () => {
+    const r = parseInsightRequest('https://px.ads.linkedin.com/wa/?medium=fetch&fmt=g');
+    expect(r.pid).toBeNull();
+  });
+
+  it('is listed in REQUEST_FILTERS so webRequest actually delivers it', () => {
+    expect(REQUEST_FILTERS).toContain('*://px.ads.linkedin.com/wa/*');
+  });
+
+  it('does not claim unrelated paths that merely start with "wa"', () => {
+    expect(parseInsightRequest('https://px.ads.linkedin.com/wallet')).toBeNull();
+    expect(parseInsightRequest('https://px.ads.linkedin.com/watch/x')).toBeNull();
+  });
+});
+
+describe('the attribution_trigger ping', () => {
+  it('parses its pid, which it carries in the query string', () => {
+    const r = parseInsightRequest(
+      'https://px.ads.linkedin.com/attribution_trigger?pid=843739&time=1786531307969'
+    );
+    expect(r).toMatchObject({ kind: 'attribution', pid: '843739', isConversion: false });
+  });
+
+  it('is listed in REQUEST_FILTERS', () => {
+    expect(REQUEST_FILTERS).toContain('*://px.ads.linkedin.com/attribution_trigger*');
   });
 });

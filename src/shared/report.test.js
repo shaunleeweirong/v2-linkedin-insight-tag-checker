@@ -85,3 +85,16 @@ describe('timelineToCsv', () => {
     expect(csv).toContain('blocked');
   });
 });
+
+describe('the loaded (script downloaded, nothing sent) status', () => {
+  it('spells out the distinction in the copied report', () => {
+    const s = run([
+      requestEvent('https://snap.licdn.com/li.lms-analytics/insight.min.js', 'completed', {
+        statusCode: 200
+      })
+    ]);
+    const text = formatReport(s, { host: 'example.com', now: 1 });
+    expect(text).toContain('SCRIPT LOADED');
+    expect(text).not.toContain('FIRING —');
+  });
+});

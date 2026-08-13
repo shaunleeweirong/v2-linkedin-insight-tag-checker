@@ -295,3 +295,161 @@ describe('partner IDs & warnings', () => {
     expect(codes).toContain('beacons-blocked');
   });
 });
+
+// ---------------------------------------------------------------------------
+// The /wa/ signal endpoint. LinkedIn's current tag POSTs its page-visit signal
+// here with the partner IDs in a gzipped body; on fully-migrated sites the
+// legacy GET /collect never fires, so this is the ONLY network PID source.
+// The service worker decodes the body and hands the ids over as `pid`.
+// ---------------------------------------------------------------------------
+const waEvent = (pids, phase, extra = {}) => {
+  const url = 'https://px.ads.linkedin.com/wa/?medium=fetch&fmt=g';
+  return {
+    type: 'request',
+    req: { ...parseInsightRequest(url), pid: pids.join(',') },
+    decoded: decodeRequest(url),
+    phase,
+    ...extra
+  };
+};
+
+describe('the /wa/ page-visit signal', () => {
+  it('counts as the tag firing', () => {
+    const s = run([waEvent(['843739'], 'completed', { statusCode: 204 })]);
+    expect(deriveBaseStatus(s)).toBe('firing');
+  });
+
+  it('surfaces the partner IDs carried in its body', () => {
+    const s = run([waEvent(['64448', '4629393'], 'completed', { statusCode: 204 })]);
+    expect(getPartnerIds(s)).toEqual(['64448', '4629393']);
+  });
+
+  it('is enough on its own — no /collect and no DOM globals needed', () => {
+    const s = run([
+      requestEvent('https://snap.licdn.com/li.lms-analytics/insight.min.js', 'completed', {
+        statusCode: 200
+      }),
+      waEvent(['843739'], 'completed', { statusCode: 204 })
+    ]);
+    expect(deriveBaseStatus(s)).toBe('firing');
+    expect(getPartnerIds(s)).toEqual(['843739']);
+  });
+});
+
+describe('the attribution_trigger ping', () => {
+  it('contributes its partner ID', () => {
+    const s = run([
+      requestEvent('https://px.ads.linkedin.com/attribution_trigger?pid=843739', 'completed', {
+        statusCode: 200
+      })
+    ]);
+    expect(getPartnerIds(s)).toEqual(['843739']);
+  });
+
+  it('does not by itself mean the page-visit signal fired', () => {
+    const s = run([
+      requestEvent('https://px.ads.linkedin.com/attribution_trigger?pid=843739', 'completed', {
+        statusCode: 200
+      })
+    ]);
+    expect(deriveBaseStatus(s)).not.toBe('firing');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Downloading insight.min.js proves the SCRIPT loaded — not that the tag sent
+// anything. Reporting that as "firing" produced a green tick next to an empty
+// Partner ID, which is the contradiction users reported.
+// ---------------------------------------------------------------------------
+describe('script loaded but no signal sent', () => {
+  const libraryOnly = () =>
+    run([
+      requestEvent('https://snap.licdn.com/li.lms-analytics/insight.min.js', 'completed', {
+        statusCode: 200
+      })
+    ]);
+
+  it('is NOT reported as firing', () => {
+    expect(deriveBaseStatus(libraryOnly())).not.toBe('firing');
+  });
+
+  it('is reported as loaded', () => {
+    expect(deriveBaseStatus(libraryOnly())).toBe('loaded');
+  });
+
+  it('still counts as firing once a real signal follows', () => {
+    const s = run([
+      requestEvent('https://snap.licdn.com/li.lms-analytics/insight.min.js', 'completed', {
+        statusCode: 200
+      }),
+      requestEvent('https://px.ads.linkedin.com/collect?pid=123&fmt=js', 'completed', {
+        statusCode: 200
+      })
+    ]);
+    expect(deriveBaseStatus(s)).toBe('firing');
+  });
+
+  it('reports blocked rather than loaded when the beacon was blocked', () => {
+    const s = run([
+      requestEvent('https://snap.licdn.com/li.lms-analytics/insight.min.js', 'completed', {
+        statusCode: 200
+      }),
+      requestEvent('https://px.ads.linkedin.com/collect?pid=123&fmt=js', 'error', {
+        error: 'net::ERR_BLOCKED_BY_CLIENT'
+      })
+    ]);
+    expect(deriveBaseStatus(s)).toBe('blocked');
+  });
+
+  it('warns that the script loaded but sent nothing', () => {
+    const codes = deriveWarnings(libraryOnly()).map((w) => w.code);
+    expect(codes).toContain('loaded-no-signal');
+  });
+});
+
+describe('unrecognised LinkedIn request kinds', () => {
+  it('are ignored rather than silently treated as the base beacon', () => {
+    const s = run([
+      {
+        type: 'request',
+        req: { kind: 'something-new', pid: '999', isConversion: false },
+        decoded: null,
+        phase: 'completed',
+        statusCode: 200
+      }
+    ]);
+    expect(getPartnerIds(s)).toEqual([]);
+    expect(deriveBaseStatus(s)).toBe('not-found');
+  });
+});
+
+describe('a /wa/ CLICK signal', () => {
+  const clickEvent = (pids) => {
+    const url = 'https://px.ads.linkedin.com/wa/?medium=fetch&fmt=g';
+    return {
+      type: 'request',
+      req: { ...parseInsightRequest(url), kind: 'wa-click', pid: pids.join(',') },
+      decoded: decodeRequest(url),
+      phase: 'completed',
+      statusCode: 204
+    };
+  };
+
+  it('contributes its partner IDs', () => {
+    expect(getPartnerIds(run([clickEvent(['9171308'])]))).toEqual(['9171308']);
+  });
+
+  it('does not on its own mean the page-visit beacon fired', () => {
+    expect(deriveBaseStatus(run([clickEvent(['9171308'])]))).not.toBe('firing');
+  });
+
+  it('does not mask a real page visit that follows', () => {
+    const url = 'https://px.ads.linkedin.com/wa/?medium=fetch&fmt=g';
+    const s = run([
+      clickEvent(['9171308']),
+      { type: 'request', req: { ...parseInsightRequest(url), pid: '9171308' },
+        decoded: decodeRequest(url), phase: 'completed', statusCode: 204 }
+    ]);
+    expect(deriveBaseStatus(s)).toBe('firing');
+  });
+});
